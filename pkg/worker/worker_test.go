@@ -92,11 +92,16 @@ func TestWorkerSimpleScriptQos0(t *testing.T) {
 			}, nil
 		}},
 		MockMarshaller{F: func(desc model.EventMessageDesc) (value interface{}, err error) {
-			if string(desc.Message) != message {
-				t.Error("unexpected message:", string(desc.Message))
+			msg, ok := desc.Message["body"].(string)
+			if !ok {
+				t.Errorf("unexpected message: %#v", desc.Message)
 				return nil, errors.New("unexpected message")
 			}
-			return fmt.Sprintf("marshalled:%v", string(desc.Message)), nil
+			if msg != message {
+				t.Error("unexpected message:", msg)
+				return nil, errors.New("unexpected message")
+			}
+			return fmt.Sprintf("marshalled:%v", msg), nil
 		}},
 		MockTrigger{F: func(desc model.EventMessageDesc, value interface{}) error {
 			triggerMux.Lock()
@@ -192,11 +197,16 @@ func TestWorkerSimpleScriptQos1(t *testing.T) {
 			}, nil
 		}},
 		MockMarshaller{F: func(desc model.EventMessageDesc) (value interface{}, err error) {
-			if string(desc.Message) != message {
-				t.Error("unexpected message:", string(desc.Message))
+			msg, ok := desc.Message["body"].(string)
+			if !ok {
+				t.Errorf("unexpected message: %#v", desc.Message)
 				return nil, errors.New("unexpected message")
 			}
-			return fmt.Sprintf("marshalled:%v", string(desc.Message)), nil
+			if msg != message {
+				t.Error("unexpected message:", msg)
+				return nil, errors.New("unexpected message")
+			}
+			return fmt.Sprintf("marshalled:%v", msg), nil
 		}},
 		MockTrigger{F: func(desc model.EventMessageDesc, value interface{}) error {
 			triggerMux.Lock()
@@ -302,11 +312,16 @@ func TestWorkerSimpleScriptQosMixed(t *testing.T) {
 			}, nil
 		}},
 		MockMarshaller{F: func(desc model.EventMessageDesc) (value interface{}, err error) {
-			if string(desc.Message) != message {
-				t.Error("unexpected message:", string(desc.Message))
+			msg, ok := desc.Message["body"].(string)
+			if !ok {
+				t.Errorf("unexpected message: %#v", desc.Message)
 				return nil, errors.New("unexpected message")
 			}
-			return fmt.Sprintf("marshalled:%v", string(desc.Message)), nil
+			if msg != message {
+				t.Error("unexpected message:", msg)
+				return nil, errors.New("unexpected message")
+			}
+			return fmt.Sprintf("marshalled:%v", msg), nil
 		}},
 		MockTrigger{F: func(desc model.EventMessageDesc, value interface{}) error {
 			triggerMux.Lock()
@@ -402,11 +417,16 @@ func TestWorkerComplexScriptQos1(t *testing.T) {
 			}, nil
 		}},
 		MockMarshaller{F: func(desc model.EventMessageDesc) (value interface{}, err error) {
-			if string(desc.Message) != message {
-				t.Error("unexpected message:", string(desc.Message))
+			msg, ok := desc.Message["body"].(string)
+			if !ok {
+				t.Errorf("unexpected message: %#v", desc.Message)
 				return nil, errors.New("unexpected message")
 			}
-			return fmt.Sprintf("marshalled:%v", string(desc.Message)), nil
+			if msg != message {
+				t.Error("unexpected message:", msg)
+				return nil, errors.New("unexpected message")
+			}
+			return fmt.Sprintf("marshalled:%v", msg), nil
 		}},
 		MockTrigger{F: func(desc model.EventMessageDesc, value interface{}) error {
 			triggerMux.Lock()
@@ -476,8 +496,20 @@ type MockEventRepo struct {
 	mux sync.Mutex
 }
 
-func (this MockEventRepo) Get(topic string) (eventDesc []model.EventDesc, err error) {
+func (this MockEventRepo) Get(topic string, message []byte) (eventDesc []model.EventMessageDesc, err error) {
 	this.mux.Lock()
 	defer this.mux.Unlock()
-	return this.F(topic)
+	temp, err := this.F(topic)
+	if err != nil {
+		return eventDesc, err
+	}
+	for _, e := range temp {
+		eventDesc = append(eventDesc, model.EventMessageDesc{
+			EventDesc: e,
+			Message: map[string]interface{}{
+				"body": string(message),
+			},
+		})
+	}
+	return
 }

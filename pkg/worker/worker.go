@@ -61,7 +61,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, e
 }
 
 type EventRepo interface {
-	Get(topic string) (eventDesc []model.EventDesc, err error)
+	Get(topic string, message []byte) (eventDesc []model.EventMessageDesc, err error)
 }
 
 type Marshaller interface {
@@ -78,19 +78,15 @@ type Notifier interface {
 
 func (this *Worker) Do(topic string, message []byte) error {
 	this.logStats(topic)
-	eventDesc, err := this.eventRepo.Get(topic)
+	eventDesc, err := this.eventRepo.Get(topic, message)
 	if err != nil {
 		return err
 	}
 	for _, desc := range eventDesc {
-		work := model.EventMessageDesc{
-			EventDesc: desc,
-			Message:   message,
-		}
-		if work.Qos == 0 {
-			this.work <- work
+		if desc.Qos == 0 {
+			this.work <- desc
 		} else {
-			err = this.do(work)
+			err = this.do(desc)
 			if err != nil {
 				return err
 			}

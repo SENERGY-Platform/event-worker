@@ -20,6 +20,7 @@ import (
 	"context"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/consumer"
+	"github.com/SENERGY-Platform/event-worker/pkg/devicerepo"
 	"github.com/SENERGY-Platform/event-worker/pkg/eventrepo"
 	"github.com/SENERGY-Platform/event-worker/pkg/marshaller"
 	"github.com/SENERGY-Platform/event-worker/pkg/notifier"
@@ -30,8 +31,19 @@ import (
 
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) error {
 	//TODO
-	w := worker.New(ctx, wg, config, &eventrepo.EventRepo{}, &marshaller.Marshaller{}, &trigger.Trigger{}, &notifier.Notifier{})
-	err := consumer.Start(ctx, wg, config, w)
+
+	repo, err := devicerepo.New(ctx, wg, config)
+	if err != nil {
+		return err
+	}
+
+	m, err := marshaller.New(ctx, wg, config, repo)
+	if err != nil {
+		return err
+	}
+
+	w := worker.New(ctx, wg, config, &eventrepo.EventRepo{}, m, &trigger.Trigger{}, &notifier.Notifier{})
+	err = consumer.Start(ctx, wg, config, w)
 	if err != nil {
 		return err
 	}

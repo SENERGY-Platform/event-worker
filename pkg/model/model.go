@@ -45,7 +45,14 @@ type EventDesc struct {
 
 type EventMessageDesc struct {
 	EventDesc
-	Message []byte `json:"message"`
+
+	//may be
+	//the service from EventDesc.ConditionalEvent.Selection.SelectedServiceId
+	//or an artificial service for EventDesc.ConditionalEvent.Selection.SelectedImportId
+	ServiceForMarshaller models.Service    `json:"service_for_marshaller"`
+	Message              SerializedMessage `json:"message"`
 }
+
+type SerializedMessage = map[string]interface{}
 
 var MessageIgnoreError = errors.New("message will be ignored")

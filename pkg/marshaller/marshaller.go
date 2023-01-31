@@ -17,16 +17,93 @@
 package marshaller
 
 import (
+	"context"
+	"fmt"
+	"github.com/SENERGY-Platform/converter/lib/converter"
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	marshallerconfig "github.com/SENERGY-Platform/marshaller/lib/config"
+	"github.com/SENERGY-Platform/marshaller/lib/marshaller/v2"
+	"github.com/SENERGY-Platform/models/go/models"
+	"log"
+	"runtime/debug"
+	"sync"
 )
 
 type Marshaller struct {
+	config     configuration.Config
+	marshaller *v2.Marshaller
+	deviceRepo DeviceRepo
+}
+
+func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, deviceRepo DeviceRepo) (result *Marshaller, err error) {
+	c, err := converter.New()
+	if err != nil {
+		return result, err
+	}
+	result = &Marshaller{
+		config:     config,
+		marshaller: v2.New(marshallerconfig.Config{Debug: config.Debug}, c, deviceRepo),
+		deviceRepo: deviceRepo,
+	}
+	return result, nil
+}
+
+type DeviceRepo interface {
+	GetCharacteristic(id string) (characteristic models.Characteristic, err error)
+	GetConcept(id string) (concept models.Concept, err error)
+	GetConceptIdOfFunction(id string) string
+	GetAspectNode(id string) (models.AspectNode, error)
 }
 
 func (this *Marshaller) Unmarshal(desc model.EventMessageDesc) (value interface{}, err error) {
-	//TODO implement me
-	panic("implement me")
+	service := desc.ServiceForMarshaller
+	characteristicId := ""
+	characteristicIdPtr := desc.ConditionalEvent.Selection.FilterCriteria.CharacteristicId
+	if characteristicIdPtr != nil {
+		characteristicId = *characteristicIdPtr
+	}
+
+	var path string
+	if desc.Selection.SelectedPath != nil {
+		path = desc.Selection.SelectedPath.Path
+	} else {
+		path, err = this.getPath(desc, service)
+	}
+
+	//no protocol is needed because we provide a serialized message
+	value, err = this.marshaller.Unmarshal(models.Protocol{}, service, characteristicId, path, nil, desc.Message)
+	if err != nil {
+		err = fmt.Errorf("%w: %v", model.MessageIgnoreError, err.Error())
+	}
+	return value, err
 }
 
-
-
+func (this *Marshaller) getPath(desc model.EventMessageDesc, service models.Service) (string, error) {
+	if desc.Selection.FilterCriteria.AspectId == nil || *desc.Selection.FilterCriteria.AspectId == "" {
+		return "", fmt.Errorf("%w: %v", model.MessageIgnoreError, "missing aspect id in conditional event description")
+	}
+	if desc.Selection.FilterCriteria.FunctionId == nil || *desc.Selection.FilterCriteria.FunctionId == "" {
+		return "", fmt.Errorf("%w: %v", model.MessageIgnoreError, "missing function id in conditional event description")
+	}
+	aspect, err := this.deviceRepo.GetAspectNode(*desc.Selection.FilterCriteria.AspectId)
+	if err != nil {
+		return "", err
+	}
+	paths := this.marshaller.GetOutputPaths(service, *desc.Selection.FilterCriteria.FunctionId, &aspect)
+	if len(paths) > 1 {
+		paths, err = this.marshaller.SortPathsByAspectDistance(this.deviceRepo, service, &aspect, paths)
+		if err != nil {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+			return "", fmt.Errorf("%w: %v", model.MessageIgnoreError, err.Error())
+		}
+		if this.config.Debug {
+			log.Println("WARNING: only one path found by FunctionId and AspectNode is used for Unmarshal")
+		}
+	}
+	if len(paths) == 0 {
+		return "", fmt.Errorf("%w: %v", model.MessageIgnoreError, "no output path found for criteria")
+	}
+	return paths[0], nil
+}
