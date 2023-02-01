@@ -47,7 +47,7 @@ func TestWorkerSimpleScriptQos0(t *testing.T) {
 	triggeredMsg := map[string][]interface{}{}
 	triggerMux := sync.Mutex{}
 
-	w := New(ctx,
+	w, err := New(ctx,
 		wg,
 		config,
 		MockEventRepo{F: func(topic string) (eventDesc []model.EventDesc, err error) {
@@ -113,12 +113,16 @@ func TestWorkerSimpleScriptQos0(t *testing.T) {
 			t.Error(err)
 		}},
 	)
-	err = w.Do(testtopic, []byte(message))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message))
+	err = w.Do(testtopic, []byte(message), 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = w.Do(testtopic, []byte(message), 0)
 	if err != nil {
 		t.Error(err)
 		return
@@ -152,7 +156,7 @@ func TestWorkerSimpleScriptQos1(t *testing.T) {
 	triggeredMsg := map[string][]interface{}{}
 	triggerMux := sync.Mutex{}
 
-	w := New(ctx,
+	w, err := New(ctx,
 		wg,
 		config,
 		MockEventRepo{F: func(topic string) (eventDesc []model.EventDesc, err error) {
@@ -218,12 +222,16 @@ func TestWorkerSimpleScriptQos1(t *testing.T) {
 			t.Error(err)
 		}},
 	)
-	err = w.Do(testtopic, []byte(message))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message))
+	err = w.Do(testtopic, []byte(message), 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = w.Do(testtopic, []byte(message), 0)
 	if err != nil {
 		t.Error(err)
 		return
@@ -256,7 +264,7 @@ func TestWorkerSimpleScriptQosMixed(t *testing.T) {
 	triggeredMsg := map[string][]interface{}{}
 	triggerMux := sync.Mutex{}
 
-	w := New(ctx,
+	w, err := New(ctx,
 		wg,
 		config,
 		MockEventRepo{F: func(topic string) (eventDesc []model.EventDesc, err error) {
@@ -333,12 +341,16 @@ func TestWorkerSimpleScriptQosMixed(t *testing.T) {
 			t.Error(err)
 		}},
 	)
-	err = w.Do(testtopic, []byte(message))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message))
+	err = w.Do(testtopic, []byte(message), 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = w.Do(testtopic, []byte(message), 0)
 	if err != nil {
 		t.Error(err)
 		return
@@ -372,7 +384,7 @@ func TestWorkerComplexScriptQos1(t *testing.T) {
 	triggeredMsg := map[string][]interface{}{}
 	triggerMux := sync.Mutex{}
 
-	w := New(ctx,
+	w, err := New(ctx,
 		wg,
 		config,
 		MockEventRepo{F: func(topic string) (eventDesc []model.EventDesc, err error) {
@@ -438,12 +450,16 @@ func TestWorkerComplexScriptQos1(t *testing.T) {
 			t.Error(err)
 		}},
 	)
-	err = w.Do(testtopic, []byte(message))
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message))
+	err = w.Do(testtopic, []byte(message), 0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = w.Do(testtopic, []byte(message), 0)
 	if err != nil {
 		t.Error(err)
 		return

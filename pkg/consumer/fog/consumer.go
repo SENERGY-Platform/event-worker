@@ -27,7 +27,7 @@ import (
 )
 
 type Worker interface {
-	Do(topic string, message []byte) error
+	Do(topic string, message []byte, ageInSec int) error
 }
 
 const TOPIC = "event/#"
@@ -49,7 +49,7 @@ func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config,
 		SetOnConnectHandler(func(client paho.Client) {
 			log.Println("connected to mgw broker")
 			token := client.Subscribe(TOPIC, config.MgwMqttQos, func(client paho.Client, message paho.Message) {
-				err := worker.Do(message.Topic(), message.Payload())
+				err := worker.Do(message.Topic(), message.Payload(), 0)
 				if err != nil {
 					log.Println("ERROR:", err)
 				}

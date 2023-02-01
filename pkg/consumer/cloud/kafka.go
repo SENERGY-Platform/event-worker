@@ -32,7 +32,7 @@ import (
 	"time"
 )
 
-func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bootstrapUrl string, groupId string, topics []string, listener func(topic string, delivery []byte) error, errhandler func(topic string, err error)) error {
+func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bootstrapUrl string, groupId string, topics []string, listener func(topic string, delivery []byte, ageInSec int) error, errhandler func(topic string, err error)) error {
 	if len(topics) == 0 {
 		return nil
 	}
@@ -87,7 +87,7 @@ func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bo
 				}
 
 				err = retry(func() error {
-					return listener(topic, m.Value)
+					return listener(topic, m.Value, int(time.Since(m.Time).Seconds()))
 				}, func(n int64) time.Duration {
 					return time.Duration(n) * time.Second
 				}, 10*time.Minute)

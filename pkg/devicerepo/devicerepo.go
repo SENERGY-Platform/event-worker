@@ -20,10 +20,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/event-worker/pkg/auth"
 	"github.com/SENERGY-Platform/event-worker/pkg/cache"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
-	"github.com/SENERGY-Platform/marshaller/lib/marshaller/model"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
 	"io"
 	"log"
@@ -78,16 +79,22 @@ func (this *DeviceRepo) GetJson(token string, endpoint string, result interface{
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
+	if resp.StatusCode >= 500 {
+		//internal service errors may be retried
 		temp, _ := io.ReadAll(resp.Body)
 		return errors.New(strings.TrimSpace(string(temp)))
+	}
+	if resp.StatusCode >= 300 {
+		temp, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("%w: %v", model.MessageIgnoreError, strings.TrimSpace(string(temp)))
 	}
 	err = json.NewDecoder(resp.Body).Decode(result)
 	if err != nil {
 		log.Println("ERROR:", err.Error())
 		debug.PrintStack()
+		return fmt.Errorf("%w: %v", model.MessageIgnoreError, err.Error())
 	}
-	return
+	return nil
 }
 
 func (this *DeviceRepo) getToken() (string, error) {
@@ -120,7 +127,7 @@ func (this *DeviceRepo) GetConcept(id string) (result models.Concept, err error)
 	return
 }
 
-func (this *DeviceRepo) getConcept(id string) (result model.Concept, err error) {
+func (this *DeviceRepo) getConcept(id string) (result models.Concept, err error) {
 	token, err := this.getToken()
 	if err != nil {
 		return result, err

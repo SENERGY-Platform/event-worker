@@ -6,10 +6,13 @@
     "channel_worker_count": 5,
 
     "cache_duration": "10m",
+    "max_message_age": "1h",
 
     "auth_endpoint": "",
     "auth_client_id": "",
     "auth_expiration_time_buffer": 2,
+
+    "event_trigger_url": "http://camunda:8080/engine-rest/message",
 
     "//fog": "------------------------",
     "mgw_mqtt_pw": "",

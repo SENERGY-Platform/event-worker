@@ -37,11 +37,15 @@ type Config struct {
 
 	CacheDuration string `json:"cache_duration"`
 
+	MaxMessageAge string `json:"max_message_age"`
+
 	AuthEndpoint             string  `json:"auth_endpoint"`
 	AuthClientId             string  `json:"auth_client_id"`
 	AuthExpirationTimeBuffer float64 `json:"auth_expiration_time_buffer"`
 
 	DeviceRepoUrl string `json:"device_repo_url"`
+
+	EventTriggerUrl string `json:"event_trigger_url"` // Cloud: http://engine-wrapper-url:8080/v2/event-trigger or Fog: http://local-camunda-url:8080/engine-rest/message
 
 	//fog
 	MgwMqttPw       string `json:"mgw_mqtt_pw"`

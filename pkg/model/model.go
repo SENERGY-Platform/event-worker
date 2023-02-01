@@ -46,11 +46,14 @@ type EventDesc struct {
 type EventMessageDesc struct {
 	EventDesc
 
+	//set by event repo
 	//may be
-	//the service from EventDesc.ConditionalEvent.Selection.SelectedServiceId
-	//or an artificial service for EventDesc.ConditionalEvent.Selection.SelectedImportId
-	ServiceForMarshaller models.Service    `json:"service_for_marshaller"`
-	Message              SerializedMessage `json:"message"`
+	//	- the service from EventDesc.ConditionalEvent.Selection.SelectedServiceId
+	//	- or an artificial service for EventDesc.ConditionalEvent.Selection.SelectedImportId
+	ServiceForMarshaller models.Service `json:"service_for_marshaller"`
+
+	Message           SerializedMessage `json:"message"`             //set by event repo
+	MessageAgeSeconds int               `json:"message_age_seconds"` //set by worker
 }
 
 type SerializedMessage = map[string]interface{}

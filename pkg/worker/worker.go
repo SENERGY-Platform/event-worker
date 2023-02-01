@@ -24,6 +24,7 @@ import (
 	"log"
 	"runtime/debug"
 	"sync"
+	"time"
 )
 
 type Worker struct {
@@ -38,26 +39,35 @@ type Worker struct {
 
 	work chan model.EventMessageDesc
 
-	statMux      sync.Mutex
-	statMsgCount int
-	statTopics   map[string]bool
+	statMux        sync.Mutex
+	statMsgCount   int
+	statTopics     map[string]bool
+	maxMsgAgeInSec int
 }
 
-func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, eventRepo EventRepo, marshaller Marshaller, trigger Trigger, notifier Notifier) (w *Worker) {
+func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, eventRepo EventRepo, marshaller Marshaller, trigger Trigger, notifier Notifier) (w *Worker, err error) {
 	w = &Worker{
-		ctx:        ctx,
-		wg:         wg,
-		config:     config,
-		eventRepo:  eventRepo,
-		marshaller: marshaller,
-		trigger:    trigger,
-		notifier:   notifier,
-		work:       make(chan model.EventMessageDesc, config.ChannelSize),
-		statTopics: map[string]bool{},
+		ctx:            ctx,
+		wg:             wg,
+		config:         config,
+		eventRepo:      eventRepo,
+		marshaller:     marshaller,
+		trigger:        trigger,
+		notifier:       notifier,
+		work:           make(chan model.EventMessageDesc, config.ChannelSize),
+		statTopics:     map[string]bool{},
+		maxMsgAgeInSec: -1,
+	}
+	if config.MaxMessageAge != "" && config.MaxMessageAge != "-" {
+		maxAge, err := time.ParseDuration(config.MaxMessageAge)
+		if err != nil {
+			return w, err
+		}
+		w.maxMsgAgeInSec = int(maxAge.Seconds())
 	}
 	w.StartStatistics()
 	w.startAsyncWorkers()
-	return w
+	return w, nil
 }
 
 type EventRepo interface {
@@ -76,13 +86,14 @@ type Notifier interface {
 	NotifyError(desc model.EventMessageDesc, err error)
 }
 
-func (this *Worker) Do(topic string, message []byte) error {
+func (this *Worker) Do(topic string, message []byte, ageInSec int) error {
 	this.logStats(topic)
 	eventDesc, err := this.eventRepo.Get(topic, message)
 	if err != nil {
 		return err
 	}
 	for _, desc := range eventDesc {
+		desc.MessageAgeSeconds = ageInSec
 		if desc.Qos == 0 {
 			this.work <- desc
 		} else {

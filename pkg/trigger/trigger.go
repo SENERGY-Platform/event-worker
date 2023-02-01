@@ -16,15 +16,85 @@
 
 package trigger
 
-import "github.com/SENERGY-Platform/event-worker/pkg/model"
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/SENERGY-Platform/event-worker/pkg/auth"
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"io"
+	"net/http"
+	"runtime/debug"
+	"strings"
+	"time"
+)
+
+func New(config configuration.Config, auth *auth.Auth) *Trigger {
+	return &Trigger{
+		config: config,
+		auth:   auth,
+	}
+}
 
 type Trigger struct {
+	config configuration.Config
+	auth   *auth.Auth
 }
 
 func (this *Trigger) Trigger(desc model.EventMessageDesc, value interface{}) error {
-	//TODO implement me
-	panic("implement me")
+	payload, err := json.Marshal(map[string]interface{}{
+		"messageName":   desc.EventId,
+		"all":           true,
+		"resultEnabled": false,
+		"processVariablesLocal": map[string]CamundaVariable{
+			"event": {Value: value},
+			"age":   {Value: desc.MessageAgeSeconds},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", this.config.EventTriggerUrl, bytes.NewBuffer(payload))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	if this.config.Mode == configuration.CloudMode {
+		token, err := this.auth.EnsureAccess(this.config)
+		if err != nil {
+			debug.PrintStack()
+			return err
+		}
+		req.Header.Set("Authorization", token)
+	}
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	response, err := io.ReadAll(resp.Body)
+	if err != nil {
+		debug.PrintStack()
+		return fmt.Errorf("%w: %v", model.MessageIgnoreError, err.Error())
+	}
+	if resp.StatusCode >= 500 {
+		//internal service errors may be retried
+		return errors.New(strings.TrimSpace(string(response)))
+	}
+	if resp.StatusCode >= 300 {
+		return fmt.Errorf("%w: %v", model.MessageIgnoreError, strings.TrimSpace(string(response)))
+	}
+	return err
 }
 
-
-
+type CamundaVariable struct {
+	Type  string      `json:"type,omitempty"`
+	Value interface{} `json:"value,omitempty"`
+}

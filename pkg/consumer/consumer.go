@@ -26,7 +26,7 @@ import (
 )
 
 type Worker interface {
-	Do(topic string, message []byte) error
+	Do(topic string, message []byte, ageInSec int) error
 }
 
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, worker Worker) error {

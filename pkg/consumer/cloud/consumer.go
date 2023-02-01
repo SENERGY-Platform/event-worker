@@ -32,7 +32,7 @@ import (
 )
 
 type Worker interface {
-	Do(topic string, message []byte) error
+	Do(topic string, message []byte, ageInSec int) error
 }
 
 func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Config, worker Worker) error {
@@ -203,8 +203,8 @@ func startWithServiceIds(basectx context.Context, wg *sync.WaitGroup, config con
 	for _, id := range serviceIds {
 		topics = append(topics, ServiceIdToTopic(id))
 	}
-	return NewKafkaLastOffsetConsumerGroup(basectx, wg, config.KafkaUrl, config.KafkaConsumerGroup, topics, func(topic string, delivery []byte) error {
-		return worker.Do(topic, delivery)
+	return NewKafkaLastOffsetConsumerGroup(basectx, wg, config.KafkaUrl, config.KafkaConsumerGroup, topics, func(topic string, delivery []byte, ageInSec int) error {
+		return worker.Do(topic, delivery, ageInSec)
 	}, func(topic string, err error) {
 		config.HandleFatalError(err)
 	})
