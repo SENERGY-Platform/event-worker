@@ -25,7 +25,8 @@ import (
 )
 
 type Cache struct {
-	cache *cache.Cache
+	cache    *cache.Cache
+	fallback Fallback
 }
 
 type Item struct {
@@ -37,6 +38,13 @@ var ErrNotFound = errors.New("key not found in cache")
 
 func NewCache(defaultExpirationInSeconds int) *Cache {
 	return &Cache{cache: cache.New(time.Duration(defaultExpirationInSeconds)*time.Second, time.Duration(defaultExpirationInSeconds)*time.Second)}
+}
+
+func NewCacheWithFallback(defaultExpirationInSeconds int, fallback Fallback) *Cache {
+	return &Cache{
+		cache:    cache.New(time.Duration(defaultExpirationInSeconds)*time.Second, time.Duration(defaultExpirationInSeconds)*time.Second),
+		fallback: fallback,
+	}
 }
 
 func (this *Cache) get(key string) (value []byte, err error) {
@@ -61,7 +69,11 @@ func (this *Cache) set(key string, value []byte, expiration time.Duration) {
 	return
 }
 
-func (this *Cache) Use(key string, expiration time.Duration, getter func() (interface{}, error), result interface{}) (err error) {
+func (this *Cache) Use(key string, getter func() (interface{}, error), result interface{}) (err error) {
+	return this.UseWithExpiration(key, 0, getter, result)
+}
+
+func (this *Cache) UseWithExpiration(key string, expiration time.Duration, getter func() (interface{}, error), result interface{}) (err error) {
 	value, err := this.get(key)
 	if err == nil {
 		err = json.Unmarshal(value, result)
@@ -71,7 +83,21 @@ func (this *Cache) Use(key string, expiration time.Duration, getter func() (inte
 	}
 	temp, err := getter()
 	if err != nil {
-		return err
+		if this.fallback == nil {
+			return err
+		}
+		temp, err = this.fallback.Get(key)
+		if err != nil {
+			return err
+		}
+	} else {
+		if this.fallback != nil {
+			err = this.fallback.Set(key, temp)
+			if err != nil {
+				log.Println("WARNING: unable to store value in fallback storage", err)
+				err = nil
+			}
+		}
 	}
 	value, err = json.Marshal(temp)
 	if err != nil {

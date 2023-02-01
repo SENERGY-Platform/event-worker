@@ -18,6 +18,7 @@ package pkg
 
 import (
 	"context"
+	"github.com/SENERGY-Platform/event-worker/pkg/auth"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/consumer"
 	"github.com/SENERGY-Platform/event-worker/pkg/devicerepo"
@@ -30,9 +31,9 @@ import (
 )
 
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) error {
-	//TODO
+	a := &auth.Auth{}
 
-	repo, err := devicerepo.New(ctx, wg, config)
+	repo, err := devicerepo.New(ctx, wg, config, a)
 	if err != nil {
 		return err
 	}

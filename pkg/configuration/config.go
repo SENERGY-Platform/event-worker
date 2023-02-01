@@ -35,12 +35,25 @@ type Config struct {
 	ChannelSize        int `json:"channel_size"`
 	ChannelWorkerCount int `json:"channel_worker_count"`
 
+	CacheDuration string `json:"cache_duration"`
+
+	AuthEndpoint             string  `json:"auth_endpoint"`
+	AuthClientId             string  `json:"auth_client_id"`
+	AuthExpirationTimeBuffer float64 `json:"auth_expiration_time_buffer"`
+
+	DeviceRepoUrl string `json:"device_repo_url"`
+
 	//fog
 	MgwMqttPw       string `json:"mgw_mqtt_pw"`
 	MgwMqttUser     string `json:"mgw_mqtt_user"`
 	MgwMqttClientId string `json:"mgw_mqtt_client_id"`
 	MgwMqttBroker   string `json:"mgw_mqtt_broker"`
 	MgwMqttQos      byte   `json:"mgw_mqtt_qos"`
+
+	AuthUserName string `json:"auth_user_name"`
+	AuthPassword string `json:"auth_password"`
+
+	FallbackFile string `json:"fallback_file"`
 
 	//cloud
 	KafkaUrl               string              `json:"kafka_url"`
@@ -51,6 +64,8 @@ type Config struct {
 	KafkaTopicSliceIndex   int                 `json:"kafka_topic_slice_index"`
 	InstanceId             string              `json:"instance_id"`
 	ServiceTopicConfig     []kafka.ConfigEntry `json:"service_topic_config"`
+
+	AuthClientSecret string `json:"auth_client_secret"`
 
 	//all
 	FatalErrHandler func(v ...interface{})

@@ -5,12 +5,23 @@
     "channel_size": 100,
     "channel_worker_count": 5,
 
+    "cache_duration": "10m",
+
+    "auth_endpoint": "",
+    "auth_client_id": "",
+    "auth_expiration_time_buffer": 2,
+
     "//fog": "------------------------",
     "mgw_mqtt_pw": "",
     "mgw_mqtt_user": "",
     "mgw_mqtt_client_id": "",
     "mgw_mqtt_broker": "",
     "mgw_mqtt_qos": 0,
+
+    "auth_user_name": "",
+    "auth_password": "",
+
+    "fallback_file": "devicerepo_fallback.json",
 
     "//cloud": "-----------------------",
     "instance_id": "",
@@ -20,6 +31,9 @@
     "process_deployment_topic": "deployments_v3",
     "kafka_topic_slice_count": 1,
     "kafka_topic_slice_index": 0,
+
+    "auth_client_secret": "",
+
     "service_topic_config": [
         {
             "ConfigName":  "retention.ms",
