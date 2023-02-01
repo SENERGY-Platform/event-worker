@@ -490,10 +490,11 @@ type MockNotifier struct {
 	mux sync.Mutex
 }
 
-func (this MockNotifier) NotifyError(desc model.EventMessageDesc, err error) {
+func (this MockNotifier) NotifyError(desc model.EventMessageDesc, err error) error {
 	this.mux.Lock()
 	defer this.mux.Unlock()
 	this.F(desc, err)
+	return nil
 }
 
 type MockMarshaller struct {

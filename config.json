@@ -12,7 +12,11 @@
     "auth_client_id": "",
     "auth_expiration_time_buffer": 2,
 
-    "event_trigger_url": "http://camunda:8080/engine-rest/message",
+    "device_repo_url": "",
+
+    "notification_url": "",
+
+    "event_trigger_url": "",
 
     "//fog": "------------------------",
     "mgw_mqtt_pw": "",

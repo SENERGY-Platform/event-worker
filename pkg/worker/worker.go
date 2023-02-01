@@ -83,7 +83,7 @@ type Trigger interface {
 }
 
 type Notifier interface {
-	NotifyError(desc model.EventMessageDesc, err error)
+	NotifyError(desc model.EventMessageDesc, err error) error
 }
 
 func (this *Worker) Do(topic string, message []byte, ageInSec int) error {
@@ -130,7 +130,11 @@ func (this *Worker) handleError(err error, desc model.EventMessageDesc) error {
 			log.Println("ERROR:", err)
 			debug.PrintStack()
 		}
-		this.notifier.NotifyError(desc, err)
+		notifierErr := this.notifier.NotifyError(desc, err)
+		if notifierErr != nil {
+			log.Println("ERROR:", notifierErr)
+			debug.PrintStack()
+		}
 		return nil
 	}
 	return err
