@@ -57,16 +57,13 @@ type DeviceRepo interface {
 }
 
 func (this *Marshaller) Unmarshal(desc model.EventMessageDesc) (value interface{}, err error) {
-	service := desc.ServiceForMarshaller
-	characteristicId := desc.CharacteristicId
-
 	var path = desc.Path
 	if path == "" {
-		path, err = this.getPath(desc, service)
+		path, err = this.getPath(desc, desc.ServiceForMarshaller)
 	}
 
 	//no protocol is needed because we provide a serialized message
-	value, err = this.marshaller.Unmarshal(models.Protocol{}, service, characteristicId, path, nil, desc.Message)
+	value, err = this.marshaller.Unmarshal(models.Protocol{}, desc.ServiceForMarshaller, desc.CharacteristicId, path, nil, desc.Message)
 	if err != nil {
 		err = fmt.Errorf("%w: %v", model.MessageIgnoreError, err.Error())
 	}

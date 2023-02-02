@@ -18,6 +18,7 @@ package eventrepo
 
 import (
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"github.com/SENERGY-Platform/models/go/models"
 )
 
 type EventRepo struct{}
@@ -26,4 +27,16 @@ func (this *EventRepo) Get(message model.ConsumerMessage) (eventDesc []model.Eve
 	return nil, nil
 	//TODO implement me
 	panic("implement me")
+}
+
+type Payload = interface{}
+
+type Environment interface {
+	IsServiceMessage(message model.ConsumerMessage) bool
+	IsImportTopic(message model.ConsumerMessage) bool
+	ParseServiceMessage(message model.ConsumerMessage) (deviceId string, serviceId string, payload Payload, err error)
+	ParseImportMessage(message model.ConsumerMessage) (importId string, payload Payload, err error)
+	GetDeviceEventDescriptions(deviceId string, serviceId string) (model.EventDesc, error)
+	GetImportEventDescriptions(importId string) (model.EventDesc, error)
+	SerializeMessage(payload Payload, service models.Service) (result model.SerializedMessage, err error)
 }

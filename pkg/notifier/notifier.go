@@ -53,7 +53,7 @@ func (this *Notifier) NotifyError(desc model.EventMessageDesc, errMsg error) (er
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", this.config.NotificationUrl+"/notifications", b)
+	req, err := http.NewRequest("POST", this.config.NotificationUrl+"/notifications?ignore_duplicates_within_seconds="+this.config.NotificationsIgnoreDuplicatesWithinSeconds, b)
 	if err != nil {
 		log.Println("ERROR: unable to send notification", err)
 		return err

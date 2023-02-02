@@ -45,7 +45,8 @@ type Config struct {
 
 	DeviceRepoUrl string `json:"device_repo_url"`
 
-	NotificationUrl string `json:"notification_url"`
+	NotificationUrl                            string `json:"notification_url"`
+	NotificationsIgnoreDuplicatesWithinSeconds string `json:"notifications_ignore_duplicates_within_seconds"`
 
 	EventTriggerUrl string `json:"event_trigger_url"` // Cloud: http://engine-wrapper-url:8080/v2/event-trigger or Fog: http://local-camunda-url:8080/engine-rest/message
 

@@ -15,6 +15,7 @@
     "device_repo_url": "",
 
     "notification_url": "",
+    "notifications_ignore_duplicates_within_seconds": "3600",
 
     "event_trigger_url": "",
 

@@ -68,7 +68,7 @@ type EventDesc struct {
 	AspectId         string `json:"aspect_id"`
 	Path             string `json:"path"`
 
-	//set by event repo
+	//set by event-manager
 	//may be
 	//	- the service from EventDesc.ConditionalEvent.Selection.SelectedServiceId
 	//	- or an artificial service for EventDesc.ConditionalEvent.Selection.SelectedImportId
@@ -76,9 +76,8 @@ type EventDesc struct {
 }
 
 type EventMessageDesc struct {
-	EventDesc
-
-	Message           SerializedMessage `json:"message"`             //set by event repo
+	EventDesc                           //read from storage
+	Message           SerializedMessage `json:"message"`             //set by event repo by serializing message
 	MessageAgeSeconds int               `json:"message_age_seconds"` //set by worker
 	MessageId         string            `json:"message_id"`          //set by worker
 }
