@@ -137,8 +137,29 @@ func (this *DeviceRepo) getConcept(id string) (result models.Concept, err error)
 }
 
 func (this *DeviceRepo) GetConceptIdOfFunction(id string) string {
-	//TODO implement me
-	panic("implement me")
+	function, err := this.GetFunction(id)
+	if err != nil {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+		return ""
+	}
+	return function.ConceptId
+}
+
+func (this *DeviceRepo) GetFunction(id string) (result models.Function, err error) {
+	err = this.cache.Use("functions."+id, func() (interface{}, error) {
+		return this.getFunction(id)
+	}, &result)
+	return
+}
+
+func (this *DeviceRepo) getFunction(id string) (result models.Function, err error) {
+	token, err := this.getToken()
+	if err != nil {
+		return result, err
+	}
+	err = this.GetJson(token, this.config.DeviceRepoUrl+"/functions/"+url.PathEscape(id), &result)
+	return
 }
 
 func (this *DeviceRepo) GetAspectNode(id string) (result models.AspectNode, err error) {
