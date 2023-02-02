@@ -45,7 +45,17 @@ func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config)
 
 	t := trigger.New(config, a)
 
-	w, err := worker.New(ctx, wg, config, &eventrepo.EventRepo{}, m, t, &notifier.Notifier{})
+	n, err := notifier.New(ctx, wg, config)
+	if err != nil {
+		return err
+	}
+
+	e, err := eventrepo.New(ctx, wg, config, n)
+	if err != nil {
+		return err
+	}
+
+	w, err := worker.New(ctx, wg, config, e, m, t, n)
 	if err != nil {
 		return err
 	}

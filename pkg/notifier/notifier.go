@@ -26,8 +26,13 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
+
+func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (*Notifier, error) {
+	return &Notifier{config: config}, nil
+}
 
 type Notifier struct {
 	config configuration.Config
