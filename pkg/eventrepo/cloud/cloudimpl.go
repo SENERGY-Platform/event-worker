@@ -18,51 +18,101 @@ package cloud
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/SENERGY-Platform/event-worker/pkg/cache"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/event-worker/pkg/eventrepo/cloud/mongo"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
+	"strings"
 	"sync"
+	"time"
 )
 
 type Payload = map[string]interface{}
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (result *Impl, err error) {
-	return &Impl{}, nil
+	m, err := mongo.New(ctx, wg, config)
+	if err != nil {
+		return result, err
+	}
+	result = &Impl{
+		config: config,
+		db:     m,
+	}
+
+	if config.CloudEventRepoCacheDuration != "" && config.CloudEventRepoCacheDuration != "-" {
+		cacheDuration, err := time.ParseDuration(config.CloudEventRepoCacheDuration)
+		if err != nil {
+			return result, err
+		}
+		result.cache = cache.NewCache(int(cacheDuration.Seconds()))
+	}
+
+	return result, nil
 }
 
-type Impl struct{}
+type Impl struct {
+	config configuration.Config
+	db     *mongo.Mongo
+	cache  *cache.Cache
+}
 
+// urn_infai_ses_service_557a8519-c801-42c6-a5e0-d6d6450ec9ab
 func (this *Impl) IsServiceMessage(message model.ConsumerMessage) bool {
-	//TODO implement me
-	panic("implement me")
+	return strings.HasPrefix(message.Topic, "urn_infai_ses_service_")
 }
 
+// urn_infai_ses_import_7f2620cb-002c-fc54-0c2e-5e840b7b0263
 func (this *Impl) IsImportMessage(message model.ConsumerMessage) bool {
-	//TODO implement me
-	panic("implement me")
+	return strings.HasPrefix(message.Topic, "urn_infai_ses_import_")
 }
 
 func (this *Impl) ParseServiceMessage(message model.ConsumerMessage) (deviceId string, serviceId string, payload Payload, err error) {
-	//TODO implement me
-	panic("implement me")
+	envelope := Envelope{}
+	err = json.Unmarshal(message.Message, &envelope)
+	if err != nil {
+		return
+	}
+	deviceId = envelope.DeviceId
+	serviceId = envelope.ServiceId
+	payload = envelope.Value
+	return
 }
 
 func (this *Impl) ParseImportMessage(message model.ConsumerMessage) (importId string, payload Payload, err error) {
-	//TODO implement me
-	panic("implement me")
+	envelope := Envelope{}
+	err = json.Unmarshal(message.Message, &envelope)
+	if err != nil {
+		return
+	}
+	importId = envelope.ServiceId
+	payload = envelope.Value
+	return
 }
 
 func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string) ([]model.EventDesc, error) {
-	//TODO implement me
-	panic("implement me")
+	return this.db.GetEventDescriptionsByDeviceAndService(deviceId, serviceId)
 }
 
-func (this *Impl) GetImportEventDescriptions(importId string) ([]model.EventDesc, error) {
-	//TODO implement me
-	panic("implement me")
+func (this *Impl) GetImportEventDescriptions(importId string) (result []model.EventDesc, err error) {
+	if this.cache != nil {
+		err = this.cache.Use("events.import."+importId, func() (interface{}, error) {
+			return this.db.GetEventDescriptionsByImportId(importId)
+		}, &result)
+		return
+	} else {
+		return this.db.GetEventDescriptionsByImportId(importId)
+	}
 }
 
 func (this *Impl) SerializeMessage(payload Payload, service models.Service) (result model.SerializedMessage, err error) {
-	//TODO implement me
-	panic("implement me")
+	return payload, nil
+}
+
+type Envelope struct {
+	ImportId  string                 `json:"import_id"`
+	DeviceId  string                 `json:"device_id,omitempty"`
+	ServiceId string                 `json:"service_id,omitempty"`
+	Value     map[string]interface{} `json:"value"`
 }

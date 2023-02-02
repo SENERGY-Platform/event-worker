@@ -35,15 +35,14 @@ type Config struct {
 	ChannelSize        int `json:"channel_size"`
 	ChannelWorkerCount int `json:"channel_worker_count"`
 
-	CacheDuration string `json:"cache_duration"`
-
 	MaxMessageAge string `json:"max_message_age"`
 
 	AuthEndpoint             string  `json:"auth_endpoint"`
 	AuthClientId             string  `json:"auth_client_id"`
 	AuthExpirationTimeBuffer float64 `json:"auth_expiration_time_buffer"`
 
-	DeviceRepoUrl string `json:"device_repo_url"`
+	DeviceRepoUrl           string `json:"device_repo_url"`
+	DeviceRepoCacheDuration string `json:"device_repo_cache_duration"`
 
 	NotificationUrl                            string `json:"notification_url"`
 	NotificationsIgnoreDuplicatesWithinSeconds string `json:"notifications_ignore_duplicates_within_seconds"`
@@ -71,6 +70,11 @@ type Config struct {
 	KafkaTopicSliceIndex   int                 `json:"kafka_topic_slice_index"`
 	InstanceId             string              `json:"instance_id"`
 	ServiceTopicConfig     []kafka.ConfigEntry `json:"service_topic_config"`
+
+	CloudEventRepoCacheDuration       string `json:"cloud_event_repo_cache_duration"`
+	CloudEventRepoMongoUrl            string `json:"cloud_event_repo_mongo_url"`
+	CloudEventRepoMongoTable          string `json:"cloud_event_repo_mongo_table"`
+	CloudEventRepoMongoDescCollection string `json:"cloud_event_repo_mongo_desc_collection"`
 
 	AuthClientSecret string `json:"auth_client_secret"`
 

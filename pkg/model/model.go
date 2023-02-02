@@ -46,33 +46,33 @@ type ConsumerMessage struct {
 }
 
 type EventDesc struct {
-	UserId string `json:"user_id"`
+	UserId string `json:"user_id" bson:"user_id"`
 
 	//search info
-	DeploymentId  string `json:"deployment_id"`
-	DeviceGroupId string `json:"device_group_id"`
-	DeviceId      string `json:"device_id"`
-	ServiceId     string `json:"service_id"`
-	ImportId      string `json:"import_id"`
+	DeploymentId  string `json:"deployment_id" bson:"deployment_id"`
+	DeviceGroupId string `json:"device_group_id" bson:"device_group_id"`
+	DeviceId      string `json:"device_id" bson:"device_id"`
+	ServiceId     string `json:"service_id" bson:"service_id"`
+	ImportId      string `json:"import_id" bson:"import_id"`
 
 	//worker info
-	Script        string            `json:"script"`
-	ValueVariable string            `json:"value_variable"`
-	Variables     map[string]string `json:"variables"`
-	Qos           int               `json:"qos"`
-	EventId       string            `json:"event_id"`
+	Script        string            `json:"script" bson:"script"`
+	ValueVariable string            `json:"value_variable" bson:"value_variable"`
+	Variables     map[string]string `json:"variables" bson:"variables"`
+	Qos           int               `json:"qos" bson:"qos"`
+	EventId       string            `json:"event_id" bson:"event_id"`
 
 	//marshaller info
-	CharacteristicId string `json:"characteristic_id"`
-	FunctionId       string `json:"function_id"`
-	AspectId         string `json:"aspect_id"`
-	Path             string `json:"path"`
+	CharacteristicId string `json:"characteristic_id" bson:"characteristic_id"`
+	FunctionId       string `json:"function_id" bson:"function_id"`
+	AspectId         string `json:"aspect_id" bson:"aspect_id"`
+	Path             string `json:"path" bson:"path"`
 
 	//set by event-manager
 	//may be
 	//	- the service from EventDesc.ConditionalEvent.Selection.SelectedServiceId
 	//	- or an artificial service for EventDesc.ConditionalEvent.Selection.SelectedImportId
-	ServiceForMarshaller models.Service `json:"service_for_marshaller"`
+	ServiceForMarshaller models.Service `json:"service_for_marshaller" bson:"service_for_marshaller"`
 }
 
 type EventMessageDesc struct {

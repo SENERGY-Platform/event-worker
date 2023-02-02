@@ -81,7 +81,7 @@ func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []mod
 		var serviceId string
 		deviceId, serviceId, pl, err = this.env.ParseServiceMessage(message)
 		if err != nil {
-			log.Println("WARNING: unable to pares service message", err)
+			log.Println("WARNING: unable to parse service message", err)
 			return nil, nil //ignore message
 		}
 		descriptions, err = this.env.GetServiceEventDescriptions(deviceId, serviceId)
@@ -92,7 +92,7 @@ func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []mod
 		var importId string
 		importId, pl, err = this.env.ParseImportMessage(message)
 		if err != nil {
-			log.Println("WARNING: unable to pares import message", err)
+			log.Println("WARNING: unable to parse import message", err)
 			return nil, nil //ignore message
 		}
 		descriptions, err = this.env.GetImportEventDescriptions(importId)

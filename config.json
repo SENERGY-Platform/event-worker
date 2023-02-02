@@ -5,7 +5,7 @@
     "channel_size": 100,
     "channel_worker_count": 5,
 
-    "cache_duration": "10m",
+    "device_repo_cache_duration": "10m",
     "max_message_age": "1h",
 
     "auth_endpoint": "",
@@ -39,6 +39,11 @@
     "process_deployment_topic": "deployments_v3",
     "kafka_topic_slice_count": 1,
     "kafka_topic_slice_index": 0,
+
+    "cloud_event_repo_cache_duration": "2s",
+    "cloud_event_repo_mongo_url": "",
+    "cloud_event_repo_mongo_table": "event_descriptions",
+    "cloud_event_repo_mongo_desc_collection": "event_descriptions",
 
     "auth_client_secret": "",
 

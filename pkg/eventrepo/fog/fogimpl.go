@@ -18,6 +18,7 @@ package fog
 
 import (
 	"context"
+	"errors"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
@@ -38,8 +39,7 @@ func (this *Impl) IsServiceMessage(message model.ConsumerMessage) bool {
 }
 
 func (this *Impl) IsImportMessage(message model.ConsumerMessage) bool {
-	//TODO implement me
-	panic("implement me")
+	return false
 }
 
 func (this *Impl) ParseServiceMessage(message model.ConsumerMessage) (deviceId string, serviceId string, payload Payload, err error) {
@@ -48,8 +48,8 @@ func (this *Impl) ParseServiceMessage(message model.ConsumerMessage) (deviceId s
 }
 
 func (this *Impl) ParseImportMessage(message model.ConsumerMessage) (importId string, payload Payload, err error) {
-	//TODO implement me
-	panic("implement me")
+	err = errors.New("import messages not supported in fog mode")
+	return
 }
 
 func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string) ([]model.EventDesc, error) {
@@ -58,8 +58,7 @@ func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string)
 }
 
 func (this *Impl) GetImportEventDescriptions(importId string) ([]model.EventDesc, error) {
-	//TODO implement me
-	panic("implement me")
+	return nil, errors.New("import messages not supported in fog mode")
 }
 
 func (this *Impl) SerializeMessage(payload Payload, service models.Service) (result model.SerializedMessage, err error) {

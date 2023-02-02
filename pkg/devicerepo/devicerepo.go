@@ -40,7 +40,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, a
 	result = &DeviceRepo{
 		auth: auth,
 	}
-	cacheDuration, err := time.ParseDuration(config.CacheDuration)
+	cacheDuration, err := time.ParseDuration(config.DeviceRepoCacheDuration)
 	if err != nil {
 		return result, err
 	}
