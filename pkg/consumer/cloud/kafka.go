@@ -19,6 +19,8 @@ package cloud
 import (
 	"context"
 	"errors"
+	"fmt"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/topics"
 	"io"
@@ -32,7 +34,7 @@ import (
 	"time"
 )
 
-func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bootstrapUrl string, groupId string, topics []string, listener func(topic string, delivery []byte, ageInSec int) error, errhandler func(topic string, err error)) error {
+func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bootstrapUrl string, groupId string, topics []string, listener func(msg model.ConsumerMessage) error, errhandler func(topic string, err error)) error {
 	if len(topics) == 0 {
 		return nil
 	}
@@ -87,7 +89,12 @@ func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bo
 				}
 
 				err = retry(func() error {
-					return listener(topic, m.Value, int(time.Since(m.Time).Seconds()))
+					return listener(model.ConsumerMessage{
+						Topic:    topic,
+						Message:  m.Value,
+						AgeInSec: int(time.Since(m.Time).Seconds()),
+						MsgId:    fmt.Sprintf("%v:%v", m.Partition, m.Offset),
+					})
 				}, func(n int64) time.Duration {
 					return time.Duration(n) * time.Second
 				}, 10*time.Minute)

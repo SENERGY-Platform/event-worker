@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	paho "github.com/eclipse/paho.mqtt.golang"
 	"log"
 	"sync"
@@ -27,7 +28,7 @@ import (
 )
 
 type Worker interface {
-	Do(topic string, message []byte, ageInSec int) error
+	Do(message model.ConsumerMessage) error
 }
 
 const TOPIC = "event/#"
@@ -49,7 +50,12 @@ func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config,
 		SetOnConnectHandler(func(client paho.Client) {
 			log.Println("connected to mgw broker")
 			token := client.Subscribe(TOPIC, config.MgwMqttQos, func(client paho.Client, message paho.Message) {
-				err := worker.Do(message.Topic(), message.Payload(), 0)
+				err := worker.Do(model.ConsumerMessage{
+					Topic:    message.Topic(),
+					Message:  message.Payload(),
+					AgeInSec: 0,
+					MsgId:    fmt.Sprintf("%v", message.MessageID()),
+				})
 				if err != nil {
 					log.Println("ERROR:", err)
 				}

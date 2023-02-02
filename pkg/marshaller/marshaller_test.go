@@ -22,8 +22,6 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deviceselectionmodel"
 	"reflect"
 	"sync"
 	"testing"
@@ -137,47 +135,40 @@ func TestMarshaller(t *testing.T) {
 	t.Run("without path", func(t *testing.T) {
 		result, err := m.Unmarshal(model.EventMessageDesc{
 			EventDesc: model.EventDesc{
-				ConditionalEvent: deploymentmodel.ConditionalEvent{
-					Selection: deploymentmodel.Selection{
-						FilterCriteria: deploymentmodel.FilterCriteria{
-							CharacteristicId: ptr("requestvalue"),
-							FunctionId:       ptr("fid"),
-							AspectId:         ptr("aid"),
-						},
-						SelectedPath: nil,
-					},
-				},
-			},
-			ServiceForMarshaller: models.Service{
-				Id:          "sid",
-				LocalId:     "lsid",
-				Interaction: models.EVENT,
-				ProtocolId:  "pid",
-				Outputs: []models.Content{
-					{
-						Id: "output",
-						ContentVariable: models.ContentVariable{
-							Id:   "outputcontentid",
-							Name: "outputcontent",
-							Type: models.Structure,
-							SubContentVariables: []models.ContentVariable{
-								{
-									Id:               "value",
-									Name:             "value",
-									Type:             models.Integer,
-									CharacteristicId: "devicevalue",
-									FunctionId:       "fid",
-									AspectId:         "aid",
-								},
-								{
-									Id:   "time",
-									Name: "time",
-									Type: models.Integer,
+				CharacteristicId: "requestvalue",
+				FunctionId:       "fid",
+				AspectId:         "aid",
+				ServiceForMarshaller: models.Service{
+					Id:          "sid",
+					LocalId:     "lsid",
+					Interaction: models.EVENT,
+					ProtocolId:  "pid",
+					Outputs: []models.Content{
+						{
+							Id: "output",
+							ContentVariable: models.ContentVariable{
+								Id:   "outputcontentid",
+								Name: "outputcontent",
+								Type: models.Structure,
+								SubContentVariables: []models.ContentVariable{
+									{
+										Id:               "value",
+										Name:             "value",
+										Type:             models.Integer,
+										CharacteristicId: "devicevalue",
+										FunctionId:       "fid",
+										AspectId:         "aid",
+									},
+									{
+										Id:   "time",
+										Name: "time",
+										Type: models.Integer,
+									},
 								},
 							},
+							Serialization:     models.JSON,
+							ProtocolSegmentId: "output",
 						},
-						Serialization:     models.JSON,
-						ProtocolSegmentId: "output",
 					},
 				},
 			},
@@ -202,49 +193,41 @@ func TestMarshaller(t *testing.T) {
 	t.Run("with path", func(t *testing.T) {
 		result, err := m.Unmarshal(model.EventMessageDesc{
 			EventDesc: model.EventDesc{
-				ConditionalEvent: deploymentmodel.ConditionalEvent{
-					Selection: deploymentmodel.Selection{
-						FilterCriteria: deploymentmodel.FilterCriteria{
-							CharacteristicId: ptr("requestvalue"),
-							FunctionId:       ptr("fid"),
-							AspectId:         ptr("aid"),
-						},
-						SelectedPath: &deviceselectionmodel.PathOption{
-							Path: "outputcontent.value",
-						},
-					},
-				},
-			},
-			ServiceForMarshaller: models.Service{
-				Id:          "sid",
-				LocalId:     "lsid",
-				Interaction: models.EVENT,
-				ProtocolId:  "pid",
-				Outputs: []models.Content{
-					{
-						Id: "output",
-						ContentVariable: models.ContentVariable{
-							Id:   "outputcontentid",
-							Name: "outputcontent",
-							Type: models.Structure,
-							SubContentVariables: []models.ContentVariable{
-								{
-									Id:               "value",
-									Name:             "value",
-									Type:             models.Integer,
-									CharacteristicId: "devicevalue",
-									FunctionId:       "fid",
-									AspectId:         "aid",
-								},
-								{
-									Id:   "time",
-									Name: "time",
-									Type: models.Integer,
+				CharacteristicId: "requestvalue",
+				FunctionId:       "fid",
+				AspectId:         "aid",
+				Path:             "outputcontent.value",
+				ServiceForMarshaller: models.Service{
+					Id:          "sid",
+					LocalId:     "lsid",
+					Interaction: models.EVENT,
+					ProtocolId:  "pid",
+					Outputs: []models.Content{
+						{
+							Id: "output",
+							ContentVariable: models.ContentVariable{
+								Id:   "outputcontentid",
+								Name: "outputcontent",
+								Type: models.Structure,
+								SubContentVariables: []models.ContentVariable{
+									{
+										Id:               "value",
+										Name:             "value",
+										Type:             models.Integer,
+										CharacteristicId: "devicevalue",
+										FunctionId:       "fid",
+										AspectId:         "aid",
+									},
+									{
+										Id:   "time",
+										Name: "time",
+										Type: models.Integer,
+									},
 								},
 							},
+							Serialization:     models.JSON,
+							ProtocolSegmentId: "output",
 						},
-						Serialization:     models.JSON,
-						ProtocolSegmentId: "output",
 					},
 				},
 			},
@@ -269,47 +252,40 @@ func TestMarshaller(t *testing.T) {
 	t.Run("device uses child aspect", func(t *testing.T) {
 		result, err := m.Unmarshal(model.EventMessageDesc{
 			EventDesc: model.EventDesc{
-				ConditionalEvent: deploymentmodel.ConditionalEvent{
-					Selection: deploymentmodel.Selection{
-						FilterCriteria: deploymentmodel.FilterCriteria{
-							CharacteristicId: ptr("requestvalue"),
-							FunctionId:       ptr("fid"),
-							AspectId:         ptr("aid"),
-						},
-						SelectedPath: nil,
-					},
-				},
-			},
-			ServiceForMarshaller: models.Service{
-				Id:          "sid",
-				LocalId:     "lsid",
-				Interaction: models.EVENT,
-				ProtocolId:  "pid",
-				Outputs: []models.Content{
-					{
-						Id: "output",
-						ContentVariable: models.ContentVariable{
-							Id:   "outputcontentid",
-							Name: "outputcontent",
-							Type: models.Structure,
-							SubContentVariables: []models.ContentVariable{
-								{
-									Id:               "value",
-									Name:             "value",
-									Type:             models.Integer,
-									CharacteristicId: "devicevalue",
-									FunctionId:       "fid",
-									AspectId:         "aid_child",
-								},
-								{
-									Id:   "time",
-									Name: "time",
-									Type: models.Integer,
+				CharacteristicId: "requestvalue",
+				FunctionId:       "fid",
+				AspectId:         "aid",
+				ServiceForMarshaller: models.Service{
+					Id:          "sid",
+					LocalId:     "lsid",
+					Interaction: models.EVENT,
+					ProtocolId:  "pid",
+					Outputs: []models.Content{
+						{
+							Id: "output",
+							ContentVariable: models.ContentVariable{
+								Id:   "outputcontentid",
+								Name: "outputcontent",
+								Type: models.Structure,
+								SubContentVariables: []models.ContentVariable{
+									{
+										Id:               "value",
+										Name:             "value",
+										Type:             models.Integer,
+										CharacteristicId: "devicevalue",
+										FunctionId:       "fid",
+										AspectId:         "aid_child",
+									},
+									{
+										Id:   "time",
+										Name: "time",
+										Type: models.Integer,
+									},
 								},
 							},
+							Serialization:     models.JSON,
+							ProtocolSegmentId: "output",
 						},
-						Serialization:     models.JSON,
-						ProtocolSegmentId: "output",
 					},
 				},
 			},

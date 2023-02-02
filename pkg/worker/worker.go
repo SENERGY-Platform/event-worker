@@ -71,7 +71,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, e
 }
 
 type EventRepo interface {
-	Get(topic string, message []byte) (eventDesc []model.EventMessageDesc, err error)
+	Get(message model.ConsumerMessage) (eventDesc []model.EventMessageDesc, err error)
 }
 
 type Marshaller interface {
@@ -86,21 +86,41 @@ type Notifier interface {
 	NotifyError(desc model.EventMessageDesc, err error) error
 }
 
-func (this *Worker) Do(topic string, message []byte, ageInSec int) error {
-	this.logStats(topic)
-	eventDesc, err := this.eventRepo.Get(topic, message)
+func (this *Worker) Do(msg model.ConsumerMessage) error {
+	this.logStats(msg.Topic)
+	if this.maxMsgAgeInSec > 0 && msg.AgeInSec > this.maxMsgAgeInSec {
+		log.Println("WARNING: skip message because its older than the configured max age", msg.AgeInSec)
+		return nil
+	}
+	eventDesc, err := this.eventRepo.Get(msg)
+	if err != nil {
+		return err
+	}
+	//handle qos=1 events first, to throw errors as early as possible
+	wg := sync.WaitGroup{}
+	for _, desc := range eventDesc {
+		desc.MessageId = msg.MsgId
+		desc.MessageAgeSeconds = msg.AgeInSec
+		if desc.Qos == 1 {
+			wg.Add(1)
+			go func(desc model.EventMessageDesc) {
+				defer wg.Done()
+				tempErr := this.do(desc)
+				if tempErr != nil {
+					err = tempErr
+				}
+			}(desc)
+		}
+	}
+	wg.Wait()
 	if err != nil {
 		return err
 	}
 	for _, desc := range eventDesc {
-		desc.MessageAgeSeconds = ageInSec
+		desc.MessageId = msg.MsgId
+		desc.MessageAgeSeconds = msg.AgeInSec
 		if desc.Qos == 0 {
 			this.work <- desc
-		} else {
-			err = this.do(desc)
-			if err != nil {
-				return err
-			}
 		}
 	}
 	return nil

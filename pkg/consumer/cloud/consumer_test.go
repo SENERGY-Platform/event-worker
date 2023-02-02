@@ -312,8 +312,8 @@ type MockWorker struct {
 	F func(topic string, message []byte) error
 }
 
-func (this MockWorker) Do(topic string, message []byte, ageInSec int) error {
-	return this.F(topic, message)
+func (this MockWorker) Do(msg model.ConsumerMessage) error {
+	return this.F(msg.Topic, msg.Message)
 }
 
 func TestSliceTopics(t *testing.T) {

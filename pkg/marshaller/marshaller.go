@@ -58,16 +58,10 @@ type DeviceRepo interface {
 
 func (this *Marshaller) Unmarshal(desc model.EventMessageDesc) (value interface{}, err error) {
 	service := desc.ServiceForMarshaller
-	characteristicId := ""
-	characteristicIdPtr := desc.ConditionalEvent.Selection.FilterCriteria.CharacteristicId
-	if characteristicIdPtr != nil {
-		characteristicId = *characteristicIdPtr
-	}
+	characteristicId := desc.CharacteristicId
 
-	var path string
-	if desc.Selection.SelectedPath != nil {
-		path = desc.Selection.SelectedPath.Path
-	} else {
+	var path = desc.Path
+	if path == "" {
 		path, err = this.getPath(desc, service)
 	}
 
@@ -80,17 +74,17 @@ func (this *Marshaller) Unmarshal(desc model.EventMessageDesc) (value interface{
 }
 
 func (this *Marshaller) getPath(desc model.EventMessageDesc, service models.Service) (string, error) {
-	if desc.Selection.FilterCriteria.AspectId == nil || *desc.Selection.FilterCriteria.AspectId == "" {
+	if desc.AspectId == "" {
 		return "", fmt.Errorf("%w: %v", model.MessageIgnoreError, "missing aspect id in conditional event description")
 	}
-	if desc.Selection.FilterCriteria.FunctionId == nil || *desc.Selection.FilterCriteria.FunctionId == "" {
+	if desc.FunctionId == "" {
 		return "", fmt.Errorf("%w: %v", model.MessageIgnoreError, "missing function id in conditional event description")
 	}
-	aspect, err := this.deviceRepo.GetAspectNode(*desc.Selection.FilterCriteria.AspectId)
+	aspect, err := this.deviceRepo.GetAspectNode(desc.AspectId)
 	if err != nil {
 		return "", err
 	}
-	paths := this.marshaller.GetOutputPaths(service, *desc.Selection.FilterCriteria.FunctionId, &aspect)
+	paths := this.marshaller.GetOutputPaths(service, desc.FunctionId, &aspect)
 	if len(paths) > 1 {
 		paths, err = this.marshaller.SortPathsByAspectDistance(this.deviceRepo, service, &aspect, paths)
 		if err != nil {

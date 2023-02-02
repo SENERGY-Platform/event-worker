@@ -49,8 +49,9 @@ func (this *Trigger) Trigger(desc model.EventMessageDesc, value interface{}) err
 		"all":           true,
 		"resultEnabled": false,
 		"processVariablesLocal": map[string]CamundaVariable{
-			"event": {Value: value},
-			"age":   {Value: desc.MessageAgeSeconds},
+			"event":  {Value: value},
+			"age":    {Value: desc.MessageAgeSeconds},
+			"msg_id": {Value: desc.MessageId},
 		},
 	})
 	if err != nil {

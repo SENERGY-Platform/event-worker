@@ -22,7 +22,7 @@ import (
 
 type EventRepo struct{}
 
-func (this *EventRepo) Get(topic string, message []byte) (eventDesc []model.EventMessageDesc, err error) {
+func (this *EventRepo) Get(message model.ConsumerMessage) (eventDesc []model.EventMessageDesc, err error) {
 	return nil, nil
 	//TODO implement me
 	panic("implement me")

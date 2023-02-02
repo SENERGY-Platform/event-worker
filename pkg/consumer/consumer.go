@@ -22,11 +22,12 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/consumer/cloud"
 	"github.com/SENERGY-Platform/event-worker/pkg/consumer/fog"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"sync"
 )
 
 type Worker interface {
-	Do(topic string, message []byte, ageInSec int) error
+	Do(message model.ConsumerMessage) error
 }
 
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, worker Worker) error {

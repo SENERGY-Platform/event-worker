@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"reflect"
 	"sync"
 	"testing"
@@ -57,37 +56,28 @@ func TestWorkerSimpleScriptQos0(t *testing.T) {
 			}
 			return []model.EventDesc{
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:testmessage"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           0,
-						EventId:       "eventid_1",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:testmessage"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           0,
+					EventId:       "eventid_1",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:testmessage"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           0,
-						EventId:       "eventid_2",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:testmessage"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           0,
+					EventId:       "eventid_2",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:nope"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           0,
-						EventId:       "eventid_3",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:nope"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           0,
+					EventId:       "eventid_3",
+					UserId:        "user",
 				},
 			}, nil
 		}},
@@ -117,12 +107,12 @@ func TestWorkerSimpleScriptQos0(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message), 0)
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message), 0)
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
 	if err != nil {
 		t.Error(err)
 		return
@@ -166,37 +156,28 @@ func TestWorkerSimpleScriptQos1(t *testing.T) {
 			}
 			return []model.EventDesc{
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:testmessage"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           1,
-						EventId:       "eventid_1",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:testmessage"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           1,
+					EventId:       "eventid_1",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:testmessage"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           1,
-						EventId:       "eventid_2",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:testmessage"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           1,
+					EventId:       "eventid_2",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:nope"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           1,
-						EventId:       "eventid_3",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:nope"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           1,
+					EventId:       "eventid_3",
+					UserId:        "user",
 				},
 			}, nil
 		}},
@@ -226,12 +207,12 @@ func TestWorkerSimpleScriptQos1(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message), 0)
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message), 0)
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
 	if err != nil {
 		t.Error(err)
 		return
@@ -274,48 +255,36 @@ func TestWorkerSimpleScriptQosMixed(t *testing.T) {
 			}
 			return []model.EventDesc{
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:testmessage"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           1,
-						EventId:       "eventid_1",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:testmessage"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           1,
+					EventId:       "eventid_1",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:testmessage"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           0,
-						EventId:       "eventid_2",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:testmessage"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           0,
+					EventId:       "eventid_2",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:nope"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           1,
-						EventId:       "eventid_3",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:nope"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           1,
+					EventId:       "eventid_3",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == "marshalled:nope"`,
-						ValueVariable: "value",
-						Variables:     nil,
-						Qos:           0,
-						EventId:       "eventid_4",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == "marshalled:nope"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           0,
+					EventId:       "eventid_4",
+					UserId:        "user",
 				},
 			}, nil
 		}},
@@ -345,12 +314,12 @@ func TestWorkerSimpleScriptQosMixed(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message), 0)
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message), 0)
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
 	if err != nil {
 		t.Error(err)
 		return
@@ -394,37 +363,28 @@ func TestWorkerComplexScriptQos1(t *testing.T) {
 			}
 			return []model.EventDesc{
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == expected`,
-						ValueVariable: "value",
-						Variables:     map[string]string{"expected": "marshalled:testmessage"},
-						Qos:           1,
-						EventId:       "eventid_1",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == expected`,
+					ValueVariable: "value",
+					Variables:     map[string]string{"expected": "marshalled:testmessage"},
+					Qos:           1,
+					EventId:       "eventid_1",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == expected`,
-						ValueVariable: "value",
-						Variables:     map[string]string{"expected": "marshalled:testmessage"},
-						Qos:           1,
-						EventId:       "eventid_2",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == expected`,
+					ValueVariable: "value",
+					Variables:     map[string]string{"expected": "marshalled:testmessage"},
+					Qos:           1,
+					EventId:       "eventid_2",
+					UserId:        "user",
 				},
 				{
-					ConditionalEvent: deploymentmodel.ConditionalEvent{
-						Script:        `value == expected`,
-						ValueVariable: "value",
-						Variables:     map[string]string{"expected": "marshalled:nope"},
-						Qos:           1,
-						EventId:       "eventid_3",
-						Selection:     deploymentmodel.Selection{},
-					},
-					UserId: "user",
+					Script:        `value == expected`,
+					ValueVariable: "value",
+					Variables:     map[string]string{"expected": "marshalled:nope"},
+					Qos:           1,
+					EventId:       "eventid_3",
+					UserId:        "user",
 				},
 			}, nil
 		}},
@@ -454,12 +414,12 @@ func TestWorkerComplexScriptQos1(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message), 0)
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = w.Do(testtopic, []byte(message), 0)
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
 	if err != nil {
 		t.Error(err)
 		return
@@ -513,10 +473,10 @@ type MockEventRepo struct {
 	mux sync.Mutex
 }
 
-func (this MockEventRepo) Get(topic string, message []byte) (eventDesc []model.EventMessageDesc, err error) {
+func (this MockEventRepo) Get(msg model.ConsumerMessage) (eventDesc []model.EventMessageDesc, err error) {
 	this.mux.Lock()
 	defer this.mux.Unlock()
-	temp, err := this.F(topic)
+	temp, err := this.F(msg.Topic)
 	if err != nil {
 		return eventDesc, err
 	}
@@ -524,7 +484,7 @@ func (this MockEventRepo) Get(topic string, message []byte) (eventDesc []model.E
 		eventDesc = append(eventDesc, model.EventMessageDesc{
 			EventDesc: e,
 			Message: map[string]interface{}{
-				"body": string(message),
+				"body": string(msg.Message),
 			},
 		})
 	}

@@ -38,22 +38,49 @@ type DeploymentCommand struct {
 	Version    int64                       `json:"version"`
 }
 
-type EventDesc struct {
-	deploymentmodel.ConditionalEvent
-	UserId string `json:"user_id"`
+type ConsumerMessage struct {
+	Topic    string `json:"topic"`
+	Message  []byte `json:"message"`
+	AgeInSec int    `json:"age_in_sec"`
+	MsgId    string `json:"msg_id"`
 }
 
-type EventMessageDesc struct {
-	EventDesc
+type EventDesc struct {
+	UserId string `json:"user_id"`
+
+	//search info
+	DeploymentId  string `json:"deployment_id"`
+	DeviceGroupId string `json:"device_group_id"`
+	DeviceId      string `json:"device_id"`
+	ServiceId     string `json:"service_id"`
+	ImportId      string `json:"import_id"`
+
+	//worker info
+	Script        string            `json:"script"`
+	ValueVariable string            `json:"value_variable"`
+	Variables     map[string]string `json:"variables"`
+	Qos           int               `json:"qos"`
+	EventId       string            `json:"event_id"`
+
+	//marshaller info
+	CharacteristicId string `json:"characteristic_id"`
+	FunctionId       string `json:"function_id"`
+	AspectId         string `json:"aspect_id"`
+	Path             string `json:"path"`
 
 	//set by event repo
 	//may be
 	//	- the service from EventDesc.ConditionalEvent.Selection.SelectedServiceId
 	//	- or an artificial service for EventDesc.ConditionalEvent.Selection.SelectedImportId
 	ServiceForMarshaller models.Service `json:"service_for_marshaller"`
+}
+
+type EventMessageDesc struct {
+	EventDesc
 
 	Message           SerializedMessage `json:"message"`             //set by event repo
 	MessageAgeSeconds int               `json:"message_age_seconds"` //set by worker
+	MessageId         string            `json:"message_id"`          //set by worker
 }
 
 type SerializedMessage = map[string]interface{}
