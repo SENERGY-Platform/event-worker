@@ -26,10 +26,32 @@
     "mgw_mqtt_broker": "",
     "mgw_mqtt_qos": 0,
 
+    "mgw_process_sync_client_url": "",
+
     "auth_user_name": "",
     "auth_password": "",
 
     "fallback_file": "devicerepo_fallback.json",
+
+    "fog_protocol": {
+        "constraints": [
+            "senergy_connector_local_id"
+        ],
+        "handler": "connector",
+        "id": "urn:infai:ses:protocol:f3a63aeb-187e-4dd9-9ef5-d97a6eb6292b",
+        "name": "standard-connector",
+        "protocol_segments": [
+            {
+                "id": "urn:infai:ses:protocol-segment:9956d8b5-46fa-4381-a227-c1df69808997",
+                "name": "metadata"
+            },
+            {
+                "id": "urn:infai:ses:protocol-segment:0d211842-cef8-41ec-ab6b-9dbc31bc3a65",
+                "name": "data"
+            }
+        ]
+    },
+    "fog_protocol_data_field_name": "data",
 
     "//cloud": "-----------------------",
     "instance_id": "",

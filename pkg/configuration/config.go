@@ -56,10 +56,15 @@ type Config struct {
 	MgwMqttBroker   string `json:"mgw_mqtt_broker"`
 	MgwMqttQos      byte   `json:"mgw_mqtt_qos"`
 
+	MgwProcessSyncClientUrl string `json:"mgw_process_sync_client_url"`
+
 	AuthUserName string `json:"auth_user_name"`
 	AuthPassword string `json:"auth_password"`
 
 	FallbackFile string `json:"fallback_file"`
+
+	FogProtocol              interface{} `json:"fog_protocol"`
+	FogProtocolDataFieldName string      `json:"fog_protocol_data_field_name"`
 
 	//cloud
 	KafkaUrl               string              `json:"kafka_url"`
