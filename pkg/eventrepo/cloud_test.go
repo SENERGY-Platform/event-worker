@@ -200,4 +200,57 @@ func TestCloudEventRepo(t *testing.T) {
 		}
 	})
 
+	t.Run("unhandled device/service", func(t *testing.T) {
+		desc, err := repo.Get(model.ConsumerMessage{
+			Topic: "urn_infai_ses_service_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			Message: []byte(`{
+				"device_id": "unhandled",
+				"service_id": "unhandled",
+				"value": {
+					"value": 42
+				}
+			}`),
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if !reflect.DeepEqual(desc, []model.EventMessageDesc{}) {
+			t.Errorf("\n%#v\n%#v", []model.EventMessageDesc{}, desc)
+		}
+	})
+
+	t.Run("unhandled import", func(t *testing.T) {
+		desc, err := repo.Get(model.ConsumerMessage{
+			Topic: "urn_infai_ses_import_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+			Message: []byte(`{
+				"import_id": "unhandled",
+				"value": {
+					"value": 42
+				}
+			}`),
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if !reflect.DeepEqual(desc, []model.EventMessageDesc{}) {
+			t.Errorf("\n%#v\n%#v", []model.EventMessageDesc{}, desc)
+		}
+	})
+
+	t.Run("unknown topic type", func(t *testing.T) {
+		desc, err := repo.Get(model.ConsumerMessage{
+			Topic:   "foo",
+			Message: []byte(`42`),
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if !reflect.DeepEqual(desc, []model.EventMessageDesc{}) {
+			t.Errorf("\n%#v\n%#v", []model.EventMessageDesc{}, desc)
+		}
+	})
+
 }

@@ -51,6 +51,9 @@ func (this *Mongo) descCollection() *mongo.Collection {
 }
 
 func (this *Mongo) GetEventDescriptionsByImportId(importId string) (result []model.EventDesc, err error) {
+	if importId == "" {
+		return []model.EventDesc{}, nil
+	}
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.ImportId: importId})
 	if err != nil {
@@ -61,6 +64,9 @@ func (this *Mongo) GetEventDescriptionsByImportId(importId string) (result []mod
 }
 
 func (this *Mongo) GetEventDescriptionsByDeviceAndService(deviceId string, serviceId string) (result []model.EventDesc, err error) {
+	if deviceId == "" || serviceId == "" {
+		return []model.EventDesc{}, nil
+	}
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.DeviceId: deviceId, DescBson.ServiceId: serviceId})
 	if err != nil {

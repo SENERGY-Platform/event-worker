@@ -74,6 +74,7 @@ type Environment[Payload any] interface {
 }
 
 func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []model.EventMessageDesc, err error) {
+	result = []model.EventMessageDesc{}
 	var descriptions []model.EventDesc
 	var pl Payload
 	if this.env.IsServiceMessage(message) {
@@ -82,7 +83,7 @@ func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []mod
 		deviceId, serviceId, pl, err = this.env.ParseServiceMessage(message)
 		if err != nil {
 			log.Println("WARNING: unable to parse service message", err)
-			return nil, nil //ignore message
+			return result, nil //ignore message
 		}
 		descriptions, err = this.env.GetServiceEventDescriptions(deviceId, serviceId)
 		if err != nil {
@@ -93,7 +94,7 @@ func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []mod
 		importId, pl, err = this.env.ParseImportMessage(message)
 		if err != nil {
 			log.Println("WARNING: unable to parse import message", err)
-			return nil, nil //ignore message
+			return result, nil //ignore message
 		}
 		descriptions, err = this.env.GetImportEventDescriptions(importId)
 		if err != nil {
@@ -101,7 +102,7 @@ func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []mod
 		}
 	} else {
 		log.Println("WARNING: unknown message type", message.Topic)
-		return nil, nil
+		return result, nil
 	}
 
 	for _, desc := range descriptions {
