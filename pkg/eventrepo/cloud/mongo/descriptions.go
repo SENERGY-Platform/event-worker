@@ -117,6 +117,19 @@ func (this *Mongo) GetEventDescriptionsByServiceId(serviceId string) (result []m
 	return result, err
 }
 
+func (this *Mongo) GetEventDescriptionsByEventId(eventId string) (result []model.EventDesc, err error) {
+	if eventId == "" {
+		return []model.EventDesc{}, nil
+	}
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.EventId: eventId})
+	if err != nil {
+		return result, err
+	}
+	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
+	return result, err
+}
+
 func (this *Mongo) RemoveEventDescriptionsByDeploymentId(deploymentId string) (err error) {
 	ctx, _ := this.getTimeoutContext()
 	_, err = this.descCollection().DeleteMany(ctx, bson.M{DescBson.DeploymentId: deploymentId})
