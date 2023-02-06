@@ -42,6 +42,21 @@ func init() {
 			debug.PrintStack()
 			return err
 		}
+		err = db.ensureIndex(collection, "event_desc_deployment_index", DescBson.DeploymentId, true, false)
+		if err != nil {
+			debug.PrintStack()
+			return err
+		}
+		err = db.ensureIndex(collection, "event_desc_group_index", DescBson.DeviceGroupId, true, false)
+		if err != nil {
+			debug.PrintStack()
+			return err
+		}
+		err = db.ensureIndex(collection, "event_desc_service_index", DescBson.ServiceId, true, false)
+		if err != nil {
+			debug.PrintStack()
+			return err
+		}
 		return nil
 	})
 }
@@ -74,4 +89,48 @@ func (this *Mongo) GetEventDescriptionsByDeviceAndService(deviceId string, servi
 	}
 	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
 	return result, err
+}
+
+func (this *Mongo) GetEventDescriptionsByDeviceGroup(deviceGroupId string) (result []model.EventDesc, err error) {
+	if deviceGroupId == "" {
+		return []model.EventDesc{}, nil
+	}
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.DeviceGroupId: deviceGroupId})
+	if err != nil {
+		return result, err
+	}
+	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
+	return result, err
+}
+
+func (this *Mongo) GetEventDescriptionsByServiceId(serviceId string) (result []model.EventDesc, err error) {
+	if serviceId == "" {
+		return []model.EventDesc{}, nil
+	}
+	ctx, _ := this.getTimeoutContext()
+	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.ServiceId: serviceId})
+	if err != nil {
+		return result, err
+	}
+	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
+	return result, err
+}
+
+func (this *Mongo) RemoveEventDescriptionsByDeploymentId(deploymentId string) (err error) {
+	ctx, _ := this.getTimeoutContext()
+	_, err = this.descCollection().DeleteMany(ctx, bson.M{DescBson.DeploymentId: deploymentId})
+	return err
+}
+
+func (this *Mongo) SetEventDescription(element model.EventDesc) (err error) {
+	if element.DeploymentId == "" {
+		return errors.New("missing deployment id")
+	}
+	if element.EventId == "" {
+		return errors.New("missing event id")
+	}
+	ctx, _ := this.getTimeoutContext()
+	_, err = this.descCollection().InsertOne(ctx, element)
+	return err
 }
