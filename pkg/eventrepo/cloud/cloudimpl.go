@@ -86,7 +86,7 @@ func (this *Impl) ParseImportMessage(message model.ConsumerMessage) (importId st
 	if err != nil {
 		return
 	}
-	importId = envelope.ServiceId
+	importId = envelope.ImportId
 	payload = envelope.Value
 	return
 }
