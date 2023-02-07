@@ -307,6 +307,57 @@ func TestMarshaller(t *testing.T) {
 			return
 		}
 	})
+	t.Run("without ids (import like service)", func(t *testing.T) {
+		result, err := m.Unmarshal(model.EventMessageDesc{
+			EventDesc: model.EventDesc{
+				CharacteristicId: "requestvalue",
+				FunctionId:       "fid",
+				AspectId:         "aid",
+				ServiceForMarshaller: models.Service{
+					Interaction: models.EVENT,
+					Outputs: []models.Content{
+						{
+							ContentVariable: models.ContentVariable{
+								Name: "outputcontent",
+								Type: models.Structure,
+								SubContentVariables: []models.ContentVariable{
+									{
+										Name:             "value",
+										Type:             models.Integer,
+										CharacteristicId: "devicevalue",
+										FunctionId:       "fid",
+										AspectId:         "aid",
+									},
+									{
+										Name: "time",
+										Type: models.Integer,
+									},
+								},
+							},
+							Serialization:     models.JSON,
+							ProtocolSegmentId: "output",
+						},
+					},
+				},
+			},
+			Message: map[string]interface{}{
+				"outputcontent": map[string]interface{}{
+					"time":  3333,
+					"value": 42,
+				},
+			},
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		var expectedResult interface{}
+		expectedResult = float64(52)
+		if !reflect.DeepEqual(result, expectedResult) {
+			t.Errorf("\n%#v\n%#v", result, expectedResult)
+			return
+		}
+	})
 }
 
 func ptr(s string) *string {
