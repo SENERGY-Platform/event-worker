@@ -193,7 +193,10 @@ func TestCloudEventRepo(t *testing.T) {
 		}
 		expected := []model.EventMessageDesc{{
 			EventDesc: importDesc,
-			Message:   map[string]interface{}{"value": float64(42)},
+			Message: map[string]interface{}{
+				"import_id": "urn:infai:ses:import:7f2620cb-002c-fc54-0c2e-5e840b7b0263",
+				"value":     map[string]interface{}{"value": float64(42)},
+			},
 		}}
 		if !reflect.DeepEqual(desc, expected) {
 			t.Errorf("\n%#v\n%#v", expected, desc)

@@ -81,13 +81,13 @@ func (this *Impl) ParseServiceMessage(message model.ConsumerMessage) (deviceId s
 }
 
 func (this *Impl) ParseImportMessage(message model.ConsumerMessage) (importId string, payload Payload, err error) {
-	envelope := Envelope{}
+	envelope := ImportEnvelope{}
 	err = json.Unmarshal(message.Message, &envelope)
 	if err != nil {
 		return
 	}
-	importId = envelope.ImportId
-	payload = envelope.Value
+	importId = envelope[ImportEnvelopeIdField].(string)
+	payload = envelope
 	return
 }
 
@@ -111,8 +111,11 @@ func (this *Impl) SerializeMessage(payload Payload, service models.Service) (res
 }
 
 type Envelope struct {
-	ImportId  string                 `json:"import_id"`
 	DeviceId  string                 `json:"device_id,omitempty"`
 	ServiceId string                 `json:"service_id,omitempty"`
 	Value     map[string]interface{} `json:"value"`
 }
+
+type ImportEnvelope = map[string]interface{}
+
+const ImportEnvelopeIdField = "import_id"
