@@ -23,8 +23,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 	"net/http"
 	"reflect"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -42,12 +44,14 @@ func New(basectx context.Context, wg *sync.WaitGroup, conf configuration.Config)
 	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, reflect.TypeOf(bson.M{})).Build() //ensure map marshalling to interface
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(conf.CloudEventRepoMongoUrl), options.Client().SetRegistry(reg))
 	if err != nil {
+		debug.PrintStack()
 		return nil, err
 	}
 	db := &Mongo{config: conf, client: client, ctx: ctx}
 	for _, creators := range CreateCollections {
 		err = creators(db)
 		if err != nil {
+			debug.PrintStack()
 			client.Disconnect(context.Background())
 			return nil, err
 		}
@@ -56,6 +60,7 @@ func New(basectx context.Context, wg *sync.WaitGroup, conf configuration.Config)
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
+		log.Println("disconnect from " + conf.CloudEventRepoMongoUrl)
 		client.Disconnect(context.Background())
 	}()
 	return db, nil

@@ -85,6 +85,7 @@ func (this *Mongo) GetEventDescriptionsByDeviceAndService(deviceId string, servi
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.DeviceId: deviceId, DescBson.ServiceId: serviceId})
 	if err != nil {
+		debug.PrintStack()
 		return result, err
 	}
 	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
@@ -98,6 +99,7 @@ func (this *Mongo) GetEventDescriptionsByDeviceGroup(deviceGroupId string) (resu
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.DeviceGroupId: deviceGroupId})
 	if err != nil {
+		debug.PrintStack()
 		return result, err
 	}
 	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
@@ -111,6 +113,7 @@ func (this *Mongo) GetEventDescriptionsByServiceId(serviceId string) (result []m
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.ServiceId: serviceId})
 	if err != nil {
+		debug.PrintStack()
 		return result, err
 	}
 	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
@@ -124,6 +127,7 @@ func (this *Mongo) GetEventDescriptionsByEventId(eventId string) (result []model
 	ctx, _ := this.getTimeoutContext()
 	cursor, err := this.descCollection().Find(ctx, bson.M{DescBson.EventId: eventId})
 	if err != nil {
+		debug.PrintStack()
 		return result, err
 	}
 	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
