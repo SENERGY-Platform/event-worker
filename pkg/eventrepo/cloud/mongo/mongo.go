@@ -39,10 +39,10 @@ type Mongo struct {
 
 var CreateCollections = []func(db *Mongo) error{}
 
-func New(basectx context.Context, wg *sync.WaitGroup, conf configuration.Config) (*Mongo, error) {
-	ctx, _ := getTimeoutContext(basectx)
+func New(ctx context.Context, wg *sync.WaitGroup, conf configuration.Config) (*Mongo, error) {
+	timeout, _ := getTimeoutContext(ctx)
 	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, reflect.TypeOf(bson.M{})).Build() //ensure map marshalling to interface
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(conf.CloudEventRepoMongoUrl), options.Client().SetRegistry(reg))
+	client, err := mongo.Connect(timeout, options.Client().ApplyURI(conf.CloudEventRepoMongoUrl), options.Client().SetRegistry(reg))
 	if err != nil {
 		debug.PrintStack()
 		return nil, err
