@@ -43,14 +43,16 @@ func (this *Worker) printStatistics() {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	log.Printf(
-		"STATISTICS: consumed %v messages from %v topics with %v seconds average age and %v max age\n",
+		"STATISTICS: \n\tconsumed messages: %v from %v topics \n\taverage age: %v seconds \n\tmax age: %v seconds \n\tevent-repo lock-time: %v",
 		this.statMsgCount,
 		len(this.statTopics),
 		avg(this.statAges),
-		max(this.statAges))
+		max(this.statAges),
+		this.statEventRepoWait.String())
 	this.statTopics = map[string]bool{}
 	this.statMsgCount = 0
 	this.statAges = []int{}
+	this.statEventRepoWait = 0
 }
 
 func (this *Worker) logStats(topic string, ageInSec int) {
@@ -59,6 +61,12 @@ func (this *Worker) logStats(topic string, ageInSec int) {
 	this.statTopics[topic] = true
 	this.statMsgCount = this.statMsgCount + 1
 	this.statAges = append(this.statAges, ageInSec)
+}
+
+func (this *Worker) logEventRepoWait(wait time.Duration) {
+	this.statMux.Lock()
+	defer this.statMux.Unlock()
+	this.statEventRepoWait = this.statEventRepoWait + wait
 }
 
 func sum(arr []int) (result int) {

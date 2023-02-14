@@ -39,11 +39,12 @@ type Worker struct {
 
 	work chan model.EventMessageDesc
 
-	statMux        sync.Mutex
-	statMsgCount   int
-	statTopics     map[string]bool
-	statAges       []int
-	maxMsgAgeInSec int
+	statMux           sync.Mutex
+	statMsgCount      int
+	statTopics        map[string]bool
+	statAges          []int
+	statEventRepoWait time.Duration
+	maxMsgAgeInSec    int
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, eventRepo EventRepo, marshaller Marshaller, trigger Trigger, notifier Notifier) (w *Worker, err error) {
@@ -95,10 +96,12 @@ func (this *Worker) Do(msg model.ConsumerMessage) error {
 		log.Println("WARNING: skip message because its older than the configured max age", msg.AgeInSec)
 		return nil
 	}
+	start := time.Now()
 	eventDesc, err := this.eventRepo.Get(msg)
 	if err != nil {
 		return err
 	}
+	this.logEventRepoWait(time.Since(start))
 	//handle qos=1 events first, to throw errors as early as possible
 	wg := sync.WaitGroup{}
 	for _, desc := range eventDesc {
