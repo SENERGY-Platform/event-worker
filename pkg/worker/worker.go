@@ -42,6 +42,7 @@ type Worker struct {
 	statMux        sync.Mutex
 	statMsgCount   int
 	statTopics     map[string]bool
+	statAges       []int
 	maxMsgAgeInSec int
 }
 
@@ -56,6 +57,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, e
 		notifier:       notifier,
 		work:           make(chan model.EventMessageDesc, config.ChannelSize),
 		statTopics:     map[string]bool{},
+		statAges:       []int{},
 		maxMsgAgeInSec: -1,
 	}
 	if config.MaxMessageAge != "" && config.MaxMessageAge != "-" {
@@ -64,6 +66,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, e
 			return w, err
 		}
 		w.maxMsgAgeInSec = int(maxAge.Seconds())
+		log.Println("used maxMsgAgeInSec = ", w.maxMsgAgeInSec)
 	}
 	w.StartStatistics()
 	w.startAsyncWorkers()
@@ -87,7 +90,7 @@ type Notifier interface {
 }
 
 func (this *Worker) Do(msg model.ConsumerMessage) error {
-	this.logStats(msg.Topic)
+	this.logStats(msg.Topic, msg.AgeInSec)
 	if this.maxMsgAgeInSec > 0 && msg.AgeInSec > this.maxMsgAgeInSec {
 		log.Println("WARNING: skip message because its older than the configured max age", msg.AgeInSec)
 		return nil
