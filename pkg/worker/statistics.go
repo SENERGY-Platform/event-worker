@@ -42,7 +42,12 @@ func (this *Worker) StartStatistics() {
 func (this *Worker) printStatistics() {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
-	log.Printf("STATISTICS: consumed %v messages from %v topics with %v seconds average age\n", this.statMsgCount, len(this.statTopics), avg(this.statAges))
+	log.Printf(
+		"STATISTICS: consumed %v messages from %v topics with %v seconds average age and %v max age\n",
+		this.statMsgCount,
+		len(this.statTopics),
+		avg(this.statAges),
+		max(this.statAges))
 	this.statTopics = map[string]bool{}
 	this.statMsgCount = 0
 	this.statAges = []int{}
@@ -69,4 +74,13 @@ func avg(arr []int) (result int) {
 		l = 1
 	}
 	return sum(arr) / l
+}
+
+func max(arr []int) (result int) {
+	for _, num := range arr {
+		if num > result {
+			result = num
+		}
+	}
+	return result
 }
