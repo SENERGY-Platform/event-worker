@@ -66,6 +66,7 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	this.statEventRepoWait = 0
 	this.statDoWait = 0
 	this.statDoWait = 0
+	this.statSkipCount = 0
 }
 
 func (this *Worker) logStats(topic string, ageInSec int) {
