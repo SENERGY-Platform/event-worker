@@ -44,12 +44,13 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	defer this.statMux.Unlock()
 	log.Printf(
 		`STATISTICS: (%v)
-    consumed messages: %v from %v topics
-    skiped messages (older then %v): %v
-    average age: %v seconds
-    max age: %v seconds
-    event-repo lock-time: %v
-    worker.Do() lock-time: %v`,
+|        consumed messages: %v from %v topics
+|        skiped messages (older then %v): %v
+|        average age: %v seconds
+|        max age: %v seconds
+|        event-repo lock-time: %v
+|        worker.Do() lock-time: %v
+-------------------------------------------------`,
 		duration.String(),
 		this.statMsgCount,
 		len(this.statTopics),
