@@ -44,6 +44,7 @@ type Worker struct {
 	statTopics        map[string]bool
 	statAges          []int
 	statEventRepoWait time.Duration
+	statDoWait        time.Duration
 	maxMsgAgeInSec    int
 }
 
@@ -102,6 +103,7 @@ func (this *Worker) Do(msg model.ConsumerMessage) error {
 		return err
 	}
 	this.logEventRepoWait(time.Since(start))
+	defer this.logDoWait(time.Since(start))
 	//handle qos=1 events first, to throw errors as early as possible
 	wg := sync.WaitGroup{}
 	for _, desc := range eventDesc {

@@ -30,7 +30,7 @@ func (this *Worker) StartStatistics() {
 		for {
 			select {
 			case <-ticker.C:
-				this.printStatistics()
+				this.printStatistics(time.Minute)
 			case <-this.ctx.Done():
 				return
 			}
@@ -39,20 +39,28 @@ func (this *Worker) StartStatistics() {
 
 }
 
-func (this *Worker) printStatistics() {
+func (this *Worker) printStatistics(duration time.Duration) {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	log.Printf(
-		"STATISTICS: \n\tconsumed messages: %v from %v topics \n\taverage age: %v seconds \n\tmax age: %v seconds \n\tevent-repo lock-time: %v",
+		`STATISTICS: (%v)
+    consumed messages: %v from %v topics
+    average age: %v seconds
+    max age: %v seconds
+    event-repo lock-time: %v
+    worker.Do() lock-time: %v`,
+		duration.String(),
 		this.statMsgCount,
 		len(this.statTopics),
 		avg(this.statAges),
 		max(this.statAges),
-		this.statEventRepoWait.String())
+		this.statEventRepoWait.String(),
+		this.statDoWait.String())
 	this.statTopics = map[string]bool{}
 	this.statMsgCount = 0
 	this.statAges = []int{}
 	this.statEventRepoWait = 0
+	this.statDoWait = 0
 }
 
 func (this *Worker) logStats(topic string, ageInSec int) {
@@ -67,6 +75,12 @@ func (this *Worker) logEventRepoWait(wait time.Duration) {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	this.statEventRepoWait = this.statEventRepoWait + wait
+}
+
+func (this *Worker) logDoWait(wait time.Duration) {
+	this.statMux.Lock()
+	defer this.statMux.Unlock()
+	this.statDoWait = this.statDoWait + wait
 }
 
 func sum(arr []int) (result int) {
