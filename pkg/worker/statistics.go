@@ -45,6 +45,7 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	log.Printf(
 		`STATISTICS: (%v)
     consumed messages: %v from %v topics
+    skiped messages (older then %v): %v
     average age: %v seconds
     max age: %v seconds
     event-repo lock-time: %v
@@ -52,6 +53,8 @@ func (this *Worker) printStatistics(duration time.Duration) {
 		duration.String(),
 		this.statMsgCount,
 		len(this.statTopics),
+		this.config.MaxMessageAge,
+		this.statSkipCount,
 		avg(this.statAges),
 		max(this.statAges),
 		this.statEventRepoWait.String(),
@@ -60,6 +63,7 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	this.statMsgCount = 0
 	this.statAges = []int{}
 	this.statEventRepoWait = 0
+	this.statDoWait = 0
 	this.statDoWait = 0
 }
 
@@ -81,6 +85,12 @@ func (this *Worker) logDoWait(wait time.Duration) {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	this.statDoWait = this.statDoWait + wait
+}
+
+func (this *Worker) logStatsSkip() {
+	this.statMux.Lock()
+	defer this.statMux.Unlock()
+	this.statSkipCount = this.statSkipCount + 1
 }
 
 func sum(arr []int) (result int) {

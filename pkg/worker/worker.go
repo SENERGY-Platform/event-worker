@@ -46,6 +46,7 @@ type Worker struct {
 	statEventRepoWait time.Duration
 	statDoWait        time.Duration
 	maxMsgAgeInSec    int
+	statSkipCount     int
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, eventRepo EventRepo, marshaller Marshaller, trigger Trigger, notifier Notifier) (w *Worker, err error) {
@@ -94,7 +95,7 @@ type Notifier interface {
 func (this *Worker) Do(msg model.ConsumerMessage) error {
 	this.logStats(msg.Topic, msg.AgeInSec)
 	if this.maxMsgAgeInSec > 0 && msg.AgeInSec > this.maxMsgAgeInSec {
-		log.Println("WARNING: skip message because its older than the configured max age", msg.AgeInSec)
+		this.logStatsSkip()
 		return nil
 	}
 	start := time.Now()
