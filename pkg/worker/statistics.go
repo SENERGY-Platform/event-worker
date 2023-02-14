@@ -45,7 +45,7 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	log.Printf(
 		`STATISTICS: (%v)
 |        consumed messages: %v from %v topics
-|        skiped messages (older then %v): %v
+|        skiped messages (older than %v): %v
 |        average age: %v seconds
 |        max age: %v seconds
 |        event-repo lock-time: %v
