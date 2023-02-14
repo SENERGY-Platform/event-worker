@@ -21,9 +21,12 @@ import (
 	"encoding/json"
 	"github.com/SENERGY-Platform/event-worker/pkg/cache"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	consumer "github.com/SENERGY-Platform/event-worker/pkg/consumer/cloud"
 	"github.com/SENERGY-Platform/event-worker/pkg/eventrepo/cloud/mongo"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
+	"log"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -49,6 +52,13 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (
 		result.cache = cache.NewCache(int(cacheDuration.Seconds()))
 	}
 
+	if config.KafkaUrl != "" {
+		err = result.watchDeploymentsDoneToResetCache(ctx, wg)
+		if err != nil {
+			return result, err
+		}
+	}
+
 	return result, nil
 }
 
@@ -56,6 +66,10 @@ type Impl struct {
 	config configuration.Config
 	db     *mongo.Mongo
 	cache  *cache.Cache
+}
+
+func (this *Impl) ResetCache() {
+	this.cache.Reset()
 }
 
 // urn_infai_ses_service_557a8519-c801-42c6-a5e0-d6d6450ec9ab
@@ -91,8 +105,15 @@ func (this *Impl) ParseImportMessage(message model.ConsumerMessage) (importId st
 	return
 }
 
-func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string) ([]model.EventDesc, error) {
-	return this.db.GetEventDescriptionsByDeviceAndService(deviceId, serviceId)
+func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string) (result []model.EventDesc, err error) {
+	if this.cache != nil {
+		err = this.cache.Use("events.device_service."+deviceId+"."+serviceId, func() (interface{}, error) {
+			return this.db.GetEventDescriptionsByDeviceAndService(deviceId, serviceId)
+		}, &result)
+		return
+	} else {
+		return this.db.GetEventDescriptionsByDeviceAndService(deviceId, serviceId)
+	}
 }
 
 func (this *Impl) GetImportEventDescriptions(importId string) (result []model.EventDesc, err error) {
@@ -119,3 +140,31 @@ type Envelope struct {
 type ImportEnvelope = map[string]interface{}
 
 const ImportEnvelopeIdField = "import_id"
+
+func (this *Impl) watchDeploymentsDoneToResetCache(ctx context.Context, wg *sync.WaitGroup) error {
+	updateSignalConsumerGroup := ""
+	if this.config.InstanceId != "" && this.config.InstanceId != "-" {
+		updateSignalConsumerGroup = this.config.KafkaConsumerGroup + "_" + this.config.InstanceId
+	}
+	return consumer.NewKafkaLastOffsetConsumer(ctx, wg, this.config.KafkaUrl, updateSignalConsumerGroup, this.config.ProcessDeploymentDoneTopic, func(delivery []byte) error {
+		msg := DoneNotification{}
+		err := json.Unmarshal(delivery, &msg)
+		if err != nil {
+			log.Println("ERROR: unable to interpret kafka msg:", err)
+			debug.PrintStack()
+			return nil //ignore  message
+		}
+		if msg.Handler == this.config.WatchedProcessDeploymentDoneHandler {
+			this.ResetCache()
+		}
+		return nil
+	}, func(err error) {
+		this.config.HandleFatalError(err)
+	})
+}
+
+type DoneNotification struct {
+	Command string `json:"command"`
+	Id      string `json:"id"`
+	Handler string `json:"handler"`
+}

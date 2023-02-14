@@ -126,3 +126,7 @@ func (this *Cache) UseWithExpirationInResult(key string, getter func() (interfac
 	this.set(key, value, expiration)
 	return json.Unmarshal(value, &result)
 }
+
+func (this *Cache) Reset() {
+	this.cache.Flush()
+}

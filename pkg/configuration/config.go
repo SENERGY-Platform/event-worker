@@ -67,14 +67,16 @@ type Config struct {
 	FogProtocolDataFieldName string      `json:"fog_protocol_data_field_name"`
 
 	//cloud
-	KafkaUrl               string              `json:"kafka_url"`
-	KafkaConsumerGroup     string              `json:"kafka_consumer_group"`
-	DeviceTypeTopic        string              `json:"device_type_topic"`
-	ProcessDeploymentTopic string              `json:"process_deployment_topic"`
-	KafkaTopicSliceCount   int                 `json:"kafka_topic_slice_count"`
-	KafkaTopicSliceIndex   int                 `json:"kafka_topic_slice_index"`
-	InstanceId             string              `json:"instance_id"`
-	ServiceTopicConfig     []kafka.ConfigEntry `json:"service_topic_config"`
+	KafkaUrl                            string              `json:"kafka_url"`
+	KafkaConsumerGroup                  string              `json:"kafka_consumer_group"`
+	DeviceTypeTopic                     string              `json:"device_type_topic"`
+	ProcessDeploymentTopic              string              `json:"process_deployment_topic"`
+	ProcessDeploymentDoneTopic          string              `json:"process_deployment_done_topic"`
+	WatchedProcessDeploymentDoneHandler string              `json:"watched_process_deployment_done_handler"`
+	KafkaTopicSliceCount                int                 `json:"kafka_topic_slice_count"`
+	KafkaTopicSliceIndex                int                 `json:"kafka_topic_slice_index"`
+	InstanceId                          string              `json:"instance_id"`
+	ServiceTopicConfig                  []kafka.ConfigEntry `json:"service_topic_config"`
 
 	CloudEventRepoCacheDuration       string `json:"cloud_event_repo_cache_duration"`
 	CloudEventRepoMongoUrl            string `json:"cloud_event_repo_mongo_url"`
