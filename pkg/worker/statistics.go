@@ -46,6 +46,10 @@ func (this *Worker) printStatistics(duration time.Duration) {
 		`STATISTICS: (%v)
 |        consumed messages: %v from %v topics
 |        skiped messages (older than %v): %v
+|        scripts run: %v
+|        events triggert: %v
+|        errors: %v
+|        notifications: %v
 |        average age: %v seconds
 |        max age: %v seconds
 |        event-repo lock-time: %v
@@ -56,6 +60,10 @@ func (this *Worker) printStatistics(duration time.Duration) {
 		len(this.statTopics),
 		this.config.MaxMessageAge,
 		this.statSkipCount,
+		this.statScriptCount,
+		this.statTriggerCount,
+		this.statErrorCount,
+		this.statNotifyCount,
 		avg(this.statAges),
 		max(this.statAges),
 		this.statEventRepoWait.String(),
@@ -67,6 +75,10 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	this.statDoWait = 0
 	this.statDoWait = 0
 	this.statSkipCount = 0
+	this.statScriptCount = 0
+	this.statTriggerCount = 0
+	this.statErrorCount = 0
+	this.statNotifyCount = 0
 }
 
 func (this *Worker) logStats(topic string, ageInSec int) {
@@ -93,6 +105,30 @@ func (this *Worker) logStatsSkip() {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	this.statSkipCount = this.statSkipCount + 1
+}
+
+func (this *Worker) logScript() {
+	this.statMux.Lock()
+	defer this.statMux.Unlock()
+	this.statScriptCount = this.statScriptCount + 1
+}
+
+func (this *Worker) logTrigger() {
+	this.statMux.Lock()
+	defer this.statMux.Unlock()
+	this.statTriggerCount = this.statTriggerCount + 1
+}
+
+func (this *Worker) logError() {
+	this.statMux.Lock()
+	defer this.statMux.Unlock()
+	this.statErrorCount = this.statErrorCount + 1
+}
+
+func (this *Worker) logNotifier() {
+	this.statMux.Lock()
+	defer this.statMux.Unlock()
+	this.statNotifyCount = this.statNotifyCount + 1
 }
 
 func sum(arr []int) (result int) {

@@ -47,6 +47,10 @@ type Worker struct {
 	statDoWait        time.Duration
 	maxMsgAgeInSec    int
 	statSkipCount     int
+	statScriptCount   int
+	statTriggerCount  int
+	statErrorCount    int
+	statNotifyCount   int
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, eventRepo EventRepo, marshaller Marshaller, trigger Trigger, notifier Notifier) (w *Worker, err error) {
@@ -140,11 +144,13 @@ func (this *Worker) do(desc model.EventMessageDesc) error {
 	if err != nil {
 		return this.handleError(err, desc)
 	}
+	this.logScript()
 	trigger, err := this.evaluateScript(desc, value)
 	if err != nil {
 		return this.handleError(err, desc)
 	}
 	if trigger {
+		this.logTrigger()
 		err = this.trigger.Trigger(desc, value)
 		if err != nil {
 			return this.handleError(err, desc)
@@ -154,11 +160,13 @@ func (this *Worker) do(desc model.EventMessageDesc) error {
 }
 
 func (this *Worker) handleError(err error, desc model.EventMessageDesc) error {
+	this.logError()
+	if this.config.Debug {
+		log.Println("ERROR:", err)
+		debug.PrintStack()
+	}
 	if errors.Is(err, model.MessageIgnoreError) {
-		if this.config.Debug {
-			log.Println("ERROR:", err)
-			debug.PrintStack()
-		}
+		this.logNotifier()
 		notifierErr := this.notifier.NotifyError(desc, err)
 		if notifierErr != nil {
 			log.Println("ERROR:", notifierErr)
