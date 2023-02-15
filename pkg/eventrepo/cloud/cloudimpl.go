@@ -52,7 +52,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (
 		result.cache = cache.NewCache(cacheDuration)
 	}
 
-	if config.KafkaUrl != "" {
+	if config.KafkaUrl != "" && config.KafkaUrl != "-" && config.ProcessDeploymentDoneTopic != "" && config.ProcessDeploymentDoneTopic != "-" {
 		err = result.watchDeploymentsDoneToResetCache(ctx, wg)
 		if err != nil {
 			return result, err
@@ -154,6 +154,7 @@ func (this *Impl) watchDeploymentsDoneToResetCache(ctx context.Context, wg *sync
 			debug.PrintStack()
 			return nil //ignore  message
 		}
+		log.Println("receive deployment done message:", msg)
 		if msg.Handler == this.config.WatchedProcessDeploymentDoneHandler {
 			this.ResetCache()
 		}
