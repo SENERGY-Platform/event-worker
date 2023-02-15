@@ -47,7 +47,7 @@ func (this *Worker) printStatistics(duration time.Duration) {
 |        consumed messages: %v from %v topics
 |        skiped messages (older than %v): %v
 |        scripts run: %v
-|        events triggert: %v
+|        events triggered: %v
 |        average age: %v seconds
 |        max age: %v seconds
 |        event-repo lock-time: %v

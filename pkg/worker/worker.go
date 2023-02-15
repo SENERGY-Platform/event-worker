@@ -175,16 +175,20 @@ func (this *Worker) handleError(err error, desc model.EventMessageDesc) error {
 
 func (this *Worker) startAsyncWorkers() {
 	for i := 0; i < this.config.ChannelWorkerCount; i++ {
+		log.Println("start async do worker")
 		this.wg.Add(1)
 		go func() {
 			defer this.wg.Done()
-			select {
-			case <-this.ctx.Done():
-				return
-			case work := <-this.work:
-				err := this.do(work)
-				if err != nil {
-					log.Println("ERROR:", err)
+			defer log.Println("stop async do worker")
+			for {
+				select {
+				case <-this.ctx.Done():
+					return
+				case work := <-this.work:
+					err := this.do(work)
+					if err != nil {
+						log.Println("ERROR:", err)
+					}
 				}
 			}
 		}()
