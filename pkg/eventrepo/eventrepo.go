@@ -40,13 +40,13 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, n
 		if err != nil {
 			return nil, err
 		}
-		return &EventRepo[fog.Payload]{env: env, notifier: notifier}, nil
+		return &EventRepo[fog.Payload]{env: env, notifier: notifier, config: config}, nil
 	case configuration.CloudMode:
 		env, err := cloud.New(ctx, wg, config)
 		if err != nil {
 			return nil, err
 		}
-		return &EventRepo[cloud.Payload]{env: env, notifier: notifier}, nil
+		return &EventRepo[cloud.Payload]{env: env, notifier: notifier, config: config}, nil
 	default:
 		return nil, errors.New("unknown mode: " + config.Mode)
 	}
@@ -55,6 +55,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, n
 type EventRepo[Payload any] struct {
 	env      Environment[Payload]
 	notifier Notifier
+	config   configuration.Config
 }
 
 type Notifier interface {
@@ -86,6 +87,7 @@ func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []mod
 			return result, nil //ignore message
 		}
 		descriptions, err = this.env.GetServiceEventDescriptions(deviceId, serviceId)
+		this.config.LogTrace(deviceId, "GetServiceEventDescriptions() = ", descriptions, err)
 		if err != nil {
 			return nil, err
 		}

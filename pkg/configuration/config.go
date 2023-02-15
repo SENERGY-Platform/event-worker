@@ -85,6 +85,9 @@ type Config struct {
 
 	AuthClientSecret string `json:"auth_client_secret"`
 
+	DebugTraceKeys  []string `json:"debug_trace_keys"`
+	DebugTraceIndex map[string]bool
+
 	//all
 	FatalErrHandler func(v ...interface{})
 }
@@ -114,6 +117,7 @@ func Load(location string) (config Config, err error) {
 	}
 	handleEnvironmentVars(&config)
 	handleInstanceIdAsSliceIndex(&config)
+	setTraceIndex(&config)
 	return config, nil
 }
 

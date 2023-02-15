@@ -89,6 +89,7 @@ func (this *Mongo) GetEventDescriptionsByDeviceAndService(deviceId string, servi
 		return result, err
 	}
 	result, err, _ = readCursorResult[model.EventDesc](ctx, cursor)
+	this.config.LogTrace(deviceId, "Mongo.GetEventDescriptionsByDeviceAndService() = ", result, err)
 	return result, err
 }
 

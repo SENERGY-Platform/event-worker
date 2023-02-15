@@ -22,6 +22,14 @@ import (
 	"strings"
 )
 
+func (this Config) LogTrace(key string, values ...interface{}) {
+	if this.DebugTraceIndex[key] {
+		msg := []interface{}{}
+		msg = append(msg, values...)
+		log.Printf("TRACE: %v, %#v\n", key, msg)
+	}
+}
+
 func handleInstanceIdAsSliceIndex(config *Config) {
 	if config.InstanceId != "" && config.InstanceId != "-" {
 		parts := strings.Split(config.InstanceId, "-")
@@ -33,4 +41,11 @@ func handleInstanceIdAsSliceIndex(config *Config) {
 		}
 	}
 	return
+}
+
+func setTraceIndex(config *Config) {
+	config.DebugTraceIndex = map[string]bool{}
+	for _, v := range config.DebugTraceKeys {
+		config.DebugTraceIndex[v] = true
+	}
 }
