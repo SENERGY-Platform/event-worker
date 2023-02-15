@@ -49,8 +49,6 @@ type Worker struct {
 	statSkipCount     int
 	statScriptCount   int
 	statTriggerCount  int
-	statErrorCount    int
-	statNotifyCount   int
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, eventRepo EventRepo, marshaller Marshaller, trigger Trigger, notifier Notifier) (w *Worker, err error) {
@@ -160,13 +158,11 @@ func (this *Worker) do(desc model.EventMessageDesc) error {
 }
 
 func (this *Worker) handleError(err error, desc model.EventMessageDesc) error {
-	this.logError()
 	if this.config.Debug {
 		log.Println("ERROR:", err)
 		debug.PrintStack()
 	}
 	if errors.Is(err, model.MessageIgnoreError) {
-		this.logNotifier()
 		notifierErr := this.notifier.NotifyError(desc, err)
 		if notifierErr != nil {
 			log.Println("ERROR:", notifierErr)

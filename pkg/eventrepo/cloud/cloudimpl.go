@@ -49,7 +49,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (
 		if err != nil {
 			return result, err
 		}
-		result.cache = cache.NewCache(int(cacheDuration.Seconds()))
+		result.cache = cache.NewCache(cacheDuration)
 	}
 
 	if config.KafkaUrl != "" {

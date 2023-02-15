@@ -50,9 +50,9 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, a
 		if err != nil {
 			return result, err
 		}
-		result.cache = cache.NewCacheWithFallback(int(cacheDuration.Seconds()), fallback)
+		result.cache = cache.NewCacheWithFallback(cacheDuration, fallback)
 	case configuration.CloudMode:
-		result.cache = cache.NewCache(int(cacheDuration.Seconds()))
+		result.cache = cache.NewCache(cacheDuration)
 	default:
 		return nil, errors.New("unknown mode: " + config.Mode)
 	}
