@@ -42,9 +42,13 @@ func (this *Notifier) NotifyError(desc model.EventMessageDesc, errMsg error) (er
 	if this.config.NotificationUrl == "" || this.config.NotificationUrl == "-" {
 		return nil
 	}
+	userId := ""
+	if this.config.Mode != configuration.FogMode {
+		userId = desc.UserId
+	}
 
 	message := Message{
-		UserId:  desc.UserId,
+		UserId:  userId,
 		Title:   "Event-Worker Error",
 		Message: errMsg.Error(),
 	}

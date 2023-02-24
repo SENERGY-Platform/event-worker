@@ -38,7 +38,8 @@ import (
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, auth *auth.Auth) (result *DeviceRepo, err error) {
 	result = &DeviceRepo{
-		auth: auth,
+		auth:   auth,
+		config: config,
 	}
 	cacheDuration, err := time.ParseDuration(config.DeviceRepoCacheDuration)
 	if err != nil {
