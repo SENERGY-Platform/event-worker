@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"io"
@@ -50,7 +51,7 @@ func (this *Notifier) NotifyError(desc model.EventMessageDesc, errMsg error) (er
 	message := Message{
 		UserId:  userId,
 		Title:   "Event-Worker Error",
-		Message: errMsg.Error(),
+		Message: fmt.Sprintf("Error: %v\n Deployment-ID: %v\n Script: %v\n", errMsg.Error(), desc.DeploymentId, desc.Script),
 	}
 
 	if this.config.Debug {
@@ -62,7 +63,7 @@ func (this *Notifier) NotifyError(desc model.EventMessageDesc, errMsg error) (er
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", this.config.NotificationUrl+"/notifications?ignore_duplicates_within_seconds="+this.config.NotificationsIgnoreDuplicatesWithinSeconds, b)
+	req, err := http.NewRequest("POST", this.config.NotificationUrl+"?ignore_duplicates_within_seconds="+this.config.NotificationsIgnoreDuplicatesWithinSeconds, b)
 	if err != nil {
 		log.Println("ERROR: unable to send notification", err)
 		return err
