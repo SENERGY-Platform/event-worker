@@ -19,6 +19,7 @@ package worker
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/dop251/goja"
 	"strconv"
@@ -26,6 +27,9 @@ import (
 )
 
 func (this *Worker) evaluateScript(desc model.EventMessageDesc, value interface{}) (trigger bool, err error) {
+	if this.config.Mode == configuration.FogMode && this.config.Debug {
+		defer fmt.Printf(`evaluate script: "%v"; with variables: %#v; triggerted = %v; error = %v`, desc.Script, desc.Variables, trigger, err)
+	}
 	vm := goja.New()
 	time.AfterFunc(2*time.Second, func() {
 		vm.Interrupt("script execution timeout")
