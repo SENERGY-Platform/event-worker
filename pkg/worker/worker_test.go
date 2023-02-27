@@ -490,3 +490,105 @@ func (this MockEventRepo) Get(msg model.ConsumerMessage) (eventDesc []model.Even
 	}
 	return
 }
+
+func TestWorkerWithFogLogging(t *testing.T) {
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	config, err := configuration.Load("../../config.json")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	config.Mode = configuration.FogMode
+	config.Debug = true
+
+	message := "testmessage"
+	testtopic := "testtopic"
+
+	triggeredMsg := map[string][]interface{}{}
+	triggerMux := sync.Mutex{}
+
+	w, err := New(ctx,
+		wg,
+		config,
+		MockEventRepo{F: func(topic string) (eventDesc []model.EventDesc, err error) {
+			if topic != testtopic {
+				t.Error("unexpected topic", topic)
+				return nil, errors.New("unexpected topic")
+			}
+			return []model.EventDesc{
+				{
+					Script:        `value == "marshalled:testmessage"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           0,
+					EventId:       "eventid_1",
+					UserId:        "user",
+				},
+				{
+					Script:        `value == "marshalled:testmessage"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           0,
+					EventId:       "eventid_2",
+					UserId:        "user",
+				},
+				{
+					Script:        `value == "marshalled:nope"`,
+					ValueVariable: "value",
+					Variables:     nil,
+					Qos:           0,
+					EventId:       "eventid_3",
+					UserId:        "user",
+				},
+			}, nil
+		}},
+		MockMarshaller{F: func(desc model.EventMessageDesc) (value interface{}, err error) {
+			msg, ok := desc.Message["body"].(string)
+			if !ok {
+				t.Errorf("unexpected message: %#v", desc.Message)
+				return nil, errors.New("unexpected message")
+			}
+			if msg != message {
+				t.Error("unexpected message:", msg)
+				return nil, errors.New("unexpected message")
+			}
+			return fmt.Sprintf("marshalled:%v", msg), nil
+		}},
+		MockTrigger{F: func(desc model.EventMessageDesc, value interface{}) error {
+			triggerMux.Lock()
+			defer triggerMux.Unlock()
+			triggeredMsg[desc.EventId] = append(triggeredMsg[desc.EventId], value)
+			return nil
+		}},
+		MockNotifier{F: func(desc model.EventMessageDesc, err error) {
+			t.Error(err)
+		}},
+	)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = w.Do(model.ConsumerMessage{testtopic, []byte(message), 0, ""})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	time.Sleep(100 * time.Millisecond)
+	triggerMux.Lock()
+	defer triggerMux.Unlock()
+	if !reflect.DeepEqual(triggeredMsg, map[string][]interface{}{
+		"eventid_1": {"marshalled:testmessage", "marshalled:testmessage"},
+		"eventid_2": {"marshalled:testmessage", "marshalled:testmessage"},
+	}) {
+		t.Errorf("%#v", triggeredMsg)
+	}
+}

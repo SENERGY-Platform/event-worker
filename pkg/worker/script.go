@@ -28,7 +28,20 @@ import (
 
 func (this *Worker) evaluateScript(desc model.EventMessageDesc, value interface{}) (trigger bool, err error) {
 	if this.config.Mode == configuration.FogMode && this.config.Debug {
-		defer fmt.Printf(`evaluate script: "%v"; with variables: %#v; triggerted = %v; error = %v`, desc.Script, desc.Variables, trigger, err)
+		defer func() {
+			variablesJson, _ := json.Marshal(desc.Variables)
+			descInfoJson, _ := json.Marshal(map[string]string{
+				"device":     desc.DeviceId,
+				"service":    desc.ServiceId,
+				"deployment": desc.DeploymentId,
+			})
+			fmt.Printf("evaluate script for %v: f(%v, %v){%v}; f(%#v, %v) = %v; error = %v\n", string(descInfoJson), desc.ValueVariable, string(variablesJson), desc.Script, value, string(variablesJson), trigger, err)
+		}()
+	} else if desc.DeviceId != "" {
+		defer func() {
+			variablesJson, _ := json.Marshal(desc.Variables)
+			this.config.LogTrace(desc.DeviceId, fmt.Sprintf("evaluate script: f(%v, %v){%v}; f(%#v, %v) = %v; error = %v\n", desc.ValueVariable, string(variablesJson), desc.Script, value, string(variablesJson), trigger, err))
+		}()
 	}
 	vm := goja.New()
 	time.AfterFunc(2*time.Second, func() {
