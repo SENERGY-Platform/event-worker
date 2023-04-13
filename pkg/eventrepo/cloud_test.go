@@ -22,7 +22,6 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/event-worker/pkg/tests/docker"
 	"github.com/SENERGY-Platform/models/go/models"
-	"github.com/ory/dockertest/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -46,13 +45,7 @@ func TestCloudEventRepo(t *testing.T) {
 
 	config.Mode = configuration.CloudMode
 
-	pool, err := dockertest.NewPool("")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	_, mongoIp, err := docker.Mongo(pool, ctx, wg)
+	_, mongoIp, err := docker.Mongo(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return

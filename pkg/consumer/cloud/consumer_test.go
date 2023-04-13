@@ -27,7 +27,6 @@ import (
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-deployment/lib/config"
 	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
-	"github.com/ory/dockertest/v3"
 	"github.com/segmentio/kafka-go"
 	"log"
 	"reflect"
@@ -49,20 +48,14 @@ func TestConsumerUpdateSignal(t *testing.T) {
 		return
 	}
 
-	pool, err := dockertest.NewPool("")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	_, zkIp, err := docker.Zookeeper(pool, ctx, wg)
+	_, zkIp, err := docker.Zookeeper(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	zookeeperUrl := zkIp + ":2181"
 
-	config.KafkaUrl, err = docker.Kafka(pool, ctx, wg, zookeeperUrl)
+	config.KafkaUrl, err = docker.Kafka(ctx, wg, zookeeperUrl)
 	if err != nil {
 		t.Error(err)
 		return

@@ -18,41 +18,51 @@ package docker
 
 import (
 	"context"
-	"github.com/ory/dockertest/v3"
-	"github.com/ory/dockertest/v3/docker"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"log"
 	"sync"
-	"time"
 )
 
-func Mongo(pool *dockertest.Pool, ctx context.Context, wg *sync.WaitGroup) (hostport string, containerip string, err error) {
-	container, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "mongo",
-		Tag:        "4.1.11",
-	}, func(config *docker.HostConfig) {
-		config.Tmpfs = map[string]string{"/data/db": "rw"}
+func Mongo(ctx context.Context, wg *sync.WaitGroup) (hostport string, containerip string, err error) {
+	log.Println("start mongo")
+	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: testcontainers.ContainerRequest{
+			Image:        "mongo:4.1.11",
+			ExposedPorts: []string{"27017/tcp"},
+			WaitingFor: wait.ForAll(
+				wait.ForLog("waiting for connections"),
+				wait.ForListeningPort("27017/tcp"),
+			),
+			Tmpfs: map[string]string{"/data/db": "rw"},
+		},
+		Started: true,
 	})
 	if err != nil {
 		return "", "", err
 	}
+
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		<-ctx.Done()
-		log.Println("DEBUG: remove container " + container.Container.Name)
-		container.Close()
-		wg.Done()
+		log.Println("DEBUG: remove container mongo", c.Terminate(context.Background()))
 	}()
-	hostport = container.GetPort("27017/tcp")
-	containerip = container.Container.NetworkSettings.IPAddress
-	err = pool.Retry(func() error {
-		log.Println("try mongodb connection...")
-		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:"+hostport))
-		err = client.Ping(ctx, readpref.Primary())
-		return err
-	})
-	return
+
+	err = Dockerlog(ctx, c, "MONGODB")
+	if err != nil {
+		return "", "", err
+	}
+
+	containerip, err = c.ContainerIP(ctx)
+	if err != nil {
+		return "", "", err
+	}
+	temp, err := c.MappedPort(ctx, "27017/tcp")
+	if err != nil {
+		return "", "", err
+	}
+	hostport = temp.Port()
+
+	return hostport, containerip, err
 }
