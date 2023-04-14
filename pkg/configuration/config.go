@@ -38,7 +38,7 @@ type Config struct {
 	MaxMessageAge string `json:"max_message_age"`
 
 	AuthEndpoint             string  `json:"auth_endpoint"`
-	AuthClientId             string  `json:"auth_client_id"`
+	AuthClientId             string  `json:"auth_client_id" config:"secret"`
 	AuthExpirationTimeBuffer float64 `json:"auth_expiration_time_buffer"`
 
 	DeviceRepoUrl           string `json:"device_repo_url"`
@@ -50,8 +50,8 @@ type Config struct {
 	EventTriggerUrl string `json:"event_trigger_url"` // Cloud: http://engine-wrapper-url:8080/v2/event-trigger or Fog: http://local-camunda-url:8080/engine-rest/message
 
 	//fog
-	MgwMqttPw       string `json:"mgw_mqtt_pw"`
-	MgwMqttUser     string `json:"mgw_mqtt_user"`
+	MgwMqttPw       string `json:"mgw_mqtt_pw" config:"secret"`
+	MgwMqttUser     string `json:"mgw_mqtt_user" config:"secret"`
 	MgwMqttClientId string `json:"mgw_mqtt_client_id"`
 	MgwMqttBroker   string `json:"mgw_mqtt_broker"`
 	MgwMqttQos      byte   `json:"mgw_mqtt_qos"`
@@ -83,7 +83,7 @@ type Config struct {
 	CloudEventRepoMongoTable          string `json:"cloud_event_repo_mongo_table"`
 	CloudEventRepoMongoDescCollection string `json:"cloud_event_repo_mongo_desc_collection"`
 
-	AuthClientSecret string `json:"auth_client_secret"`
+	AuthClientSecret string `json:"auth_client_secret" config:"secret"`
 
 	DebugTraceKeys  []string `json:"debug_trace_keys"`
 	DebugTraceIndex map[string]bool

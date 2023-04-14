@@ -3,11 +3,11 @@ module github.com/SENERGY-Platform/event-worker
 go 1.20
 
 require (
-	github.com/SENERGY-Platform/converter v0.0.0-20230131090133-d4d9baf75374
-	github.com/SENERGY-Platform/marshaller v0.0.0-20230403110028-8ea8e1403a91
+	github.com/SENERGY-Platform/converter v0.0.0-20230413113429-b490a96aabba
+	github.com/SENERGY-Platform/marshaller v0.0.0-20230413113821-f8a7bc020739
 	github.com/SENERGY-Platform/models/go v0.0.0-20230406081245-2b17534509d4
-	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20230412082144-ebfcfa47d725
-	github.com/SENERGY-Platform/process-deployment v0.0.0-20230220144253-c09c2b3cfff5
+	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20230414071410-091d73d966ea
+	github.com/SENERGY-Platform/process-deployment v0.0.0-20230414093210-43c42be333f9
 	github.com/dop251/goja v0.0.0-20230402114112-623f9dda9079
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -53,7 +53,6 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414 // indirect
-	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
