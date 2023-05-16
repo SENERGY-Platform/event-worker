@@ -19,7 +19,6 @@ package cloud
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
@@ -277,15 +276,8 @@ func TestConsumerUpdateSignal(t *testing.T) {
 }
 
 func NewTestProducer(kafkaUrl string, topic string) (func(msg string) error, error) {
-	broker, err := GetBroker(kafkaUrl)
-	if err != nil {
-		return nil, err
-	}
-	if len(broker) == 0 {
-		return nil, errors.New("missing kafka broker")
-	}
 	writer := &kafka.Writer{
-		Addr:        kafka.TCP(broker...),
+		Addr:        kafka.TCP(kafkaUrl),
 		Topic:       topic,
 		MaxAttempts: 10,
 		BatchSize:   1,

@@ -34,7 +34,7 @@ import (
 	"time"
 )
 
-func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bootstrapUrl string, groupId string, topics []string, listener func(msg model.ConsumerMessage) error, errhandler func(topic string, err error)) error {
+func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, broker string, groupId string, topics []string, listener func(msg model.ConsumerMessage) error, errhandler func(topic string, err error)) error {
 	if len(topics) == 0 {
 		return nil
 	}
@@ -44,21 +44,17 @@ func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bo
 		log.Println("consume:", topics)
 	}
 
-	broker, err := GetBroker(bootstrapUrl)
-	if err != nil {
-		log.Println("ERROR: unable to get broker list", err)
-		return err
-	}
-
 	r := kafka.NewReader(kafka.ReaderConfig{
-		StartOffset:    kafka.LastOffset,
-		GroupBalancers: []kafka.GroupBalancer{kafka.RoundRobinGroupBalancer{}, kafka.RangeGroupBalancer{}},
-		CommitInterval: 0, //synchronous commits
-		Brokers:        broker,
-		GroupID:        groupId,
-		GroupTopics:    topics,
-		Logger:         log.New(io.Discard, "", 0),
-		ErrorLogger:    log.New(os.Stdout, "[KAFKA-ERROR] ", log.Default().Flags()),
+		StartOffset:            kafka.LastOffset,
+		GroupBalancers:         []kafka.GroupBalancer{kafka.RoundRobinGroupBalancer{}, kafka.RangeGroupBalancer{}},
+		CommitInterval:         0, //synchronous commits
+		Brokers:                []string{broker},
+		GroupID:                groupId,
+		GroupTopics:            topics,
+		Logger:                 log.New(io.Discard, "", 0),
+		ErrorLogger:            log.New(os.Stdout, "[KAFKA-ERROR] ", log.Default().Flags()),
+		WatchPartitionChanges:  true,
+		PartitionWatchInterval: time.Minute,
 	})
 
 	wg.Add(1)
@@ -111,22 +107,19 @@ func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, bo
 	return nil
 }
 
-func NewKafkaLastOffsetConsumer(ctx context.Context, wg *sync.WaitGroup, bootstrapUrl string, groupId string, topic string, listener func(delivery []byte) error, errhandler func(err error)) error {
+func NewKafkaLastOffsetConsumer(ctx context.Context, wg *sync.WaitGroup, broker string, groupId string, topic string, listener func(delivery []byte) error, errhandler func(err error)) error {
 	log.Println("consume:", topic)
-	broker, err := GetBroker(bootstrapUrl)
-	if err != nil {
-		log.Println("ERROR: unable to get broker list", err)
-		return err
-	}
 
 	r := kafka.NewReader(kafka.ReaderConfig{
-		StartOffset:    kafka.LastOffset,
-		GroupID:        groupId,
-		CommitInterval: 0, //synchronous commits
-		Brokers:        broker,
-		Topic:          topic,
-		Logger:         log.New(io.Discard, "", 0),
-		ErrorLogger:    log.New(os.Stdout, "[KAFKA-ERROR] ", log.Default().Flags()),
+		StartOffset:            kafka.LastOffset,
+		GroupID:                groupId,
+		CommitInterval:         0, //synchronous commits
+		Brokers:                []string{broker},
+		Topic:                  topic,
+		Logger:                 log.New(io.Discard, "", 0),
+		ErrorLogger:            log.New(os.Stdout, "[KAFKA-ERROR] ", log.Default().Flags()),
+		WatchPartitionChanges:  true,
+		PartitionWatchInterval: time.Minute,
 	})
 
 	wg.Add(1)
@@ -185,10 +178,6 @@ func retry(f func() error, waitProvider func(n int64) time.Duration, timeout tim
 		}
 	}
 	return err
-}
-
-func GetBroker(bootstrapUrl string) (brokers []string, err error) {
-	return getBroker(bootstrapUrl)
 }
 
 func getBroker(bootstrapUrl string) (result []string, err error) {
