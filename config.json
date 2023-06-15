@@ -2,6 +2,8 @@
     "debug": false,
     "mode": "cloud",
 
+    "metrics_port": "8080",
+
     "channel_size": 1000,
     "channel_worker_count": 20,
 

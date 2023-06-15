@@ -17,6 +17,7 @@
 package worker
 
 import (
+	"github.com/SENERGY-Platform/event-worker/pkg/metrics"
 	"log"
 	"time"
 )
@@ -36,7 +37,7 @@ func (this *Worker) StartStatistics() {
 			}
 		}
 	}()
-
+	this.metrics = metrics.New().Serve(this.ctx, this.config.MetricsPort)
 }
 
 func (this *Worker) printStatistics(duration time.Duration) {
@@ -69,7 +70,6 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	this.statAges = []int{}
 	this.statEventRepoWait = 0
 	this.statDoWait = 0
-	this.statDoWait = 0
 	this.statSkipCount = 0
 	this.statScriptCount = 0
 	this.statTriggerCount = 0
@@ -81,36 +81,43 @@ func (this *Worker) logStats(topic string, ageInSec int) {
 	this.statTopics[topic] = true
 	this.statMsgCount = this.statMsgCount + 1
 	this.statAges = append(this.statAges, ageInSec)
+	this.metrics.ConsumedMessages.Inc()
+	this.metrics.MessageAges.Observe(float64(ageInSec))
 }
 
 func (this *Worker) logEventRepoWait(wait time.Duration) {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	this.statEventRepoWait = this.statEventRepoWait + wait
+	this.metrics.EventRepoLockTime.Add(float64(wait.Milliseconds()))
 }
 
 func (this *Worker) logDoWait(wait time.Duration) {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	this.statDoWait = this.statDoWait + wait
+	this.metrics.DoDuration.Add(float64(wait.Milliseconds()))
 }
 
 func (this *Worker) logStatsSkip() {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	this.statSkipCount = this.statSkipCount + 1
+	this.metrics.MessagesSkipped.Inc()
 }
 
 func (this *Worker) logScript() {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	this.statScriptCount = this.statScriptCount + 1
+	this.metrics.EventsChecked.Inc()
 }
 
 func (this *Worker) logTrigger() {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	this.statTriggerCount = this.statTriggerCount + 1
+	this.metrics.EventsTriggered.Inc()
 }
 
 func sum(arr []int) (result int) {

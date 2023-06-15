@@ -32,6 +32,8 @@ type Config struct {
 	Debug bool `json:"debug"`
 	Mode  Mode `json:"mode"`
 
+	MetricsPort string `json:"metrics_port"`
+
 	ChannelSize        int `json:"channel_size"`
 	ChannelWorkerCount int `json:"channel_worker_count"`
 

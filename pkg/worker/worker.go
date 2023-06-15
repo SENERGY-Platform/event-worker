@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/event-worker/pkg/metrics"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"log"
 	"runtime/debug"
@@ -49,6 +50,7 @@ type Worker struct {
 	statSkipCount     int
 	statScriptCount   int
 	statTriggerCount  int
+	metrics           *metrics.Metrics
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, eventRepo EventRepo, marshaller Marshaller, trigger Trigger, notifier Notifier) (w *Worker, err error) {

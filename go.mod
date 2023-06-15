@@ -11,6 +11,7 @@ require (
 	github.com/dop251/goja v0.0.0-20230402114112-623f9dda9079
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/prometheus/client_golang v1.14.0
 	github.com/segmentio/kafka-go v0.4.39
 	github.com/testcontainers/testcontainers-go v0.19.0
 	github.com/wvanbergen/kazoo-go v0.0.0-20180202103751-f72d8611297a
@@ -23,7 +24,9 @@ require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/RyanCarrier/dijkstra v1.2.0 // indirect
 	github.com/beevik/etree v1.1.0 // indirect
+	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/containerd/containerd v1.6.19 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
@@ -42,6 +45,7 @@ require (
 	github.com/klauspost/compress v1.16.4 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/moby/patternmatcher v0.5.0 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/moby/term v0.0.0-20221128092401-c43b287e0e0f // indirect
@@ -52,6 +56,9 @@ require (
 	github.com/opencontainers/runc v1.1.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/prometheus/client_model v0.3.0 // indirect
+	github.com/prometheus/common v0.42.0 // indirect
+	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
