@@ -135,10 +135,17 @@ func (this *Mongo) GetEventDescriptionsByEventId(eventId string) (result []model
 	return result, err
 }
 
-func (this *Mongo) RemoveEventDescriptionsByDeploymentId(deploymentId string) (err error) {
+func (this *Mongo) RemoveEventDescriptionsByDeploymentId(deploymentId string) (deletedCount int64, err error) {
 	ctx, _ := this.getTimeoutContext()
-	_, err = this.descCollection().DeleteMany(ctx, bson.M{DescBson.DeploymentId: deploymentId})
-	return err
+	var deleteResult *mongo.DeleteResult
+	deleteResult, err = this.descCollection().DeleteMany(ctx, bson.M{DescBson.DeploymentId: deploymentId})
+	if err != nil {
+		return 0, err
+	}
+	if deleteResult != nil {
+		return deleteResult.DeletedCount, err
+	}
+	return 0, err
 }
 
 func (this *Mongo) SetEventDescription(element model.EventDesc) (err error) {
