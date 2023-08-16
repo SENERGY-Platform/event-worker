@@ -18,10 +18,10 @@ package mongo
 
 import (
 	"errors"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"reflect"
 	"strings"
 )
@@ -101,12 +101,12 @@ func (this *Mongo) ensureCompoundIndex(collection *mongo.Collection, indexname s
 	if asc {
 		direction = 1
 	}
-	keys := []bsonx.Elem{}
+	keys := []bson.E{}
 	for _, key := range indexKeys {
-		keys = append(keys, bsonx.Elem{Key: key, Value: bsonx.Int32(direction)})
+		keys = append(keys, bson.E{Key: key, Value: direction})
 	}
 	_, err := collection.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys:    bsonx.Doc(keys),
+		Keys:    bson.D(keys),
 		Options: options.Index().SetName(indexname).SetUnique(unique),
 	})
 	return err
@@ -119,7 +119,7 @@ func (this *Mongo) ensureIndex(collection *mongo.Collection, indexname string, i
 		direction = 1
 	}
 	_, err := collection.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys:    bsonx.Doc{{indexKey, bsonx.Int32(direction)}},
+		Keys:    bson.D{{indexKey, direction}},
 		Options: options.Index().SetName(indexname).SetUnique(unique),
 	})
 	return err
@@ -129,9 +129,9 @@ func (this *Mongo) ensureTextIndex(collection *mongo.Collection, indexname strin
 	if len(indexKeys) == 0 {
 		return errors.New("expect at least one key")
 	}
-	keys := bsonx.Doc{}
+	keys := bson.D{}
 	for _, key := range indexKeys {
-		keys = append(keys, bsonx.Elem{Key: key, Value: bsonx.String("text")})
+		keys = append(keys, bson.E{Key: key, Value: "text"})
 	}
 	ctx, _ := this.getTimeoutContext()
 	_, err := collection.Indexes().CreateOne(ctx, mongo.IndexModel{
