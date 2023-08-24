@@ -6,9 +6,9 @@ toolchain go1.21.0
 
 require (
 	github.com/SENERGY-Platform/converter v0.0.0-20230413113429-b490a96aabba
-	github.com/SENERGY-Platform/marshaller v0.0.0-20230413113821-f8a7bc020739
-	github.com/SENERGY-Platform/models/go v0.0.0-20230724134144-c26fd506045f
-	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20230815113517-0ac2d5f283fa
+	github.com/SENERGY-Platform/marshaller v0.0.0-20230824091458-02f9efbd5ba3
+	github.com/SENERGY-Platform/models/go v0.0.0-20230824080159-16585960df38
+	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20230824093541-9ebc03639b9b
 	github.com/SENERGY-Platform/process-deployment v0.0.0-20230816090614-383f4ed54e16
 	github.com/dop251/goja v0.0.0-20230812105242-81d76064690d
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -43,7 +43,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/pprof v0.0.0-20230816055901-76846d4d6a3b // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
