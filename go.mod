@@ -9,7 +9,7 @@ require (
 	github.com/SENERGY-Platform/marshaller v0.0.0-20231101072104-348b10942fb3
 	github.com/SENERGY-Platform/models/go v0.0.0-20230824080159-16585960df38
 	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20231101115659-52fe1e9c0235
-	github.com/SENERGY-Platform/process-deployment v0.0.0-20230901093000-6ea610063ac2
+	github.com/SENERGY-Platform/process-deployment v0.0.0-20231101131005-448fe2549d52
 	github.com/dop251/goja v0.0.0-20231027120936-b396bb4c349d
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/patrickmn/go-cache v2.1.0+incompatible
