@@ -27,7 +27,12 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/notifier"
 	"github.com/SENERGY-Platform/event-worker/pkg/trigger"
 	"github.com/SENERGY-Platform/event-worker/pkg/worker"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache/invalidator"
+	"github.com/SENERGY-Platform/service-commons/pkg/kafka"
+	"log"
+	"runtime/debug"
 	"sync"
+	"time"
 )
 
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) error {
@@ -63,5 +68,28 @@ func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config)
 	if err != nil {
 		return err
 	}
+	if config.Mode == configuration.CloudMode {
+		err = StartCacheInvalidator(ctx, config)
+		if err != nil {
+			log.Println("WARNING: unable to start cache invalidator", err)
+			return nil
+		}
+	}
 	return nil
+}
+
+func StartCacheInvalidator(ctx context.Context, conf configuration.Config) error {
+	if conf.KafkaUrl == "" || conf.KafkaUrl == "-" {
+		return nil
+	}
+	return invalidator.StartCacheInvalidatorAll(ctx, kafka.Config{
+		KafkaUrl:               conf.KafkaUrl,
+		StartOffset:            kafka.LastOffset,
+		Debug:                  conf.Debug,
+		PartitionWatchInterval: time.Minute,
+		OnError: func(err error) {
+			log.Println("ERROR:", err)
+			debug.PrintStack()
+		},
+	}, conf.CacheInvalidationKafkaTopics, nil)
 }

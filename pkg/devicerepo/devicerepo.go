@@ -22,10 +22,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/event-worker/pkg/auth"
-	"github.com/SENERGY-Platform/event-worker/pkg/cache"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache/fallback"
+	"github.com/SENERGY-Platform/service-commons/pkg/signal"
 	"io"
 	"log"
 	"net/http"
@@ -37,33 +39,46 @@ import (
 )
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, auth *auth.Auth) (result *DeviceRepo, err error) {
-	result = &DeviceRepo{
-		auth:   auth,
-		config: config,
-	}
 	cacheDuration, err := time.ParseDuration(config.DeviceRepoCacheDuration)
 	if err != nil {
 		return result, err
 	}
-	switch config.Mode {
-	case configuration.FogMode:
-		fallback, err := cache.NewFallback(config.FallbackFile)
-		if err != nil {
-			return result, err
-		}
-		result.cache = cache.NewCacheWithFallback(cacheDuration, fallback)
-	case configuration.CloudMode:
-		result.cache = cache.NewCache(cacheDuration)
-	default:
-		return nil, errors.New("unknown mode: " + config.Mode)
+	result = &DeviceRepo{
+		auth:          auth,
+		config:        config,
+		cacheDuration: cacheDuration,
+	}
+
+	cacheConfig := cache.Config{
+		CacheInvalidationSignalHooks: map[cache.Signal]cache.ToKey{
+			signal.Known.CacheInvalidationAll: nil,
+			signal.Known.ConceptCacheInvalidation: func(signalValue string) (cacheKey string) {
+				return "concept." + signalValue
+			},
+			signal.Known.CharacteristicCacheInvalidation: func(signalValue string) (cacheKey string) {
+				return "characteristics." + signalValue
+			},
+			signal.Known.FunctionCacheInvalidation: func(signalValue string) (cacheKey string) {
+				return "functions." + signalValue
+			},
+			signal.Known.AspectCacheInvalidation: nil, //invalidate everything, because an aspect corresponds to multiple aspect-nodes
+		},
+	}
+	if config.Mode == configuration.FogMode && config.FallbackFile != "" && config.FallbackFile != "-" {
+		cacheConfig.FallbackProvider = fallback.NewProvider(config.FallbackFile)
+	}
+	result.cache, err = cache.New(cacheConfig)
+	if err != nil {
+		return result, err
 	}
 	return result, nil
 }
 
 type DeviceRepo struct {
-	auth   *auth.Auth
-	cache  *cache.Cache
-	config configuration.Config
+	auth          *auth.Auth
+	cache         *cache.Cache
+	config        configuration.Config
+	cacheDuration time.Duration
 }
 
 func (this *DeviceRepo) GetJson(token string, endpoint string, result interface{}) (err error) {
@@ -106,10 +121,9 @@ func (this *DeviceRepo) getToken() (string, error) {
 }
 
 func (this *DeviceRepo) GetCharacteristic(id string) (result models.Characteristic, err error) {
-	err = this.cache.Use("characteristics."+id, func() (interface{}, error) {
+	return cache.Use(this.cache, "characteristics."+id, func() (result models.Characteristic, err error) {
 		return this.getCharacteristic(id)
-	}, &result)
-	return
+	}, this.cacheDuration)
 }
 
 func (this *DeviceRepo) getCharacteristic(id string) (result models.Characteristic, err error) {
@@ -122,10 +136,9 @@ func (this *DeviceRepo) getCharacteristic(id string) (result models.Characterist
 }
 
 func (this *DeviceRepo) GetConcept(id string) (result models.Concept, err error) {
-	err = this.cache.Use("concept."+id, func() (interface{}, error) {
+	return cache.Use(this.cache, "concept."+id, func() (result models.Concept, err error) {
 		return this.getConcept(id)
-	}, &result)
-	return
+	}, this.cacheDuration)
 }
 
 func (this *DeviceRepo) getConcept(id string) (result models.Concept, err error) {
@@ -148,10 +161,9 @@ func (this *DeviceRepo) GetConceptIdOfFunction(id string) string {
 }
 
 func (this *DeviceRepo) GetFunction(id string) (result models.Function, err error) {
-	err = this.cache.Use("functions."+id, func() (interface{}, error) {
+	return cache.Use(this.cache, "functions."+id, func() (result models.Function, err error) {
 		return this.getFunction(id)
-	}, &result)
-	return
+	}, this.cacheDuration)
 }
 
 func (this *DeviceRepo) getFunction(id string) (result models.Function, err error) {
@@ -164,10 +176,9 @@ func (this *DeviceRepo) getFunction(id string) (result models.Function, err erro
 }
 
 func (this *DeviceRepo) GetAspectNode(id string) (result models.AspectNode, err error) {
-	err = this.cache.Use("aspect-nodes."+id, func() (interface{}, error) {
+	return cache.Use(this.cache, "aspect-nodes."+id, func() (result models.AspectNode, err error) {
 		return this.getAspectNode(id)
-	}, &result)
-	return
+	}, this.cacheDuration)
 }
 
 func (this *DeviceRepo) getAspectNode(id string) (result models.AspectNode, err error) {

@@ -2,6 +2,8 @@
     "debug": false,
     "mode": "cloud",
 
+    "cache_invalidation_kafka_topics": ["device-types", "aspects", "concepts", "characteristics", "functions"],
+
     "metrics_port": "8080",
 
     "channel_size": 1000,

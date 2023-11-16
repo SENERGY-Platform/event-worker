@@ -19,12 +19,12 @@ package cloud
 import (
 	"context"
 	"encoding/json"
-	"github.com/SENERGY-Platform/event-worker/pkg/cache"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	consumer "github.com/SENERGY-Platform/event-worker/pkg/consumer/cloud"
 	"github.com/SENERGY-Platform/event-worker/pkg/eventrepo/cloud/mongo"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache"
 	"log"
 	"runtime/debug"
 	"strings"
@@ -49,7 +49,11 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (
 		if err != nil {
 			return result, err
 		}
-		result.cache = cache.NewCache(cacheDuration)
+		result.cacheDuration = cacheDuration
+		result.cache, err = cache.New(cache.Config{})
+		if err != nil {
+			return result, err
+		}
 	}
 
 	if config.KafkaUrl != "" && config.KafkaUrl != "-" && config.ProcessDeploymentDoneTopic != "" && config.ProcessDeploymentDoneTopic != "-" {
@@ -63,9 +67,10 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (
 }
 
 type Impl struct {
-	config configuration.Config
-	db     *mongo.Mongo
-	cache  *cache.Cache
+	config        configuration.Config
+	db            *mongo.Mongo
+	cache         *cache.Cache
+	cacheDuration time.Duration
 }
 
 func (this *Impl) ResetCache() {
@@ -106,25 +111,17 @@ func (this *Impl) ParseImportMessage(message model.ConsumerMessage) (importId st
 }
 
 func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string) (result []model.EventDesc, err error) {
-	if this.cache != nil {
-		err = this.cache.Use("events.device_service."+deviceId+"."+serviceId, func() (interface{}, error) {
-			return this.db.GetEventDescriptionsByDeviceAndService(deviceId, serviceId)
-		}, &result)
-		return
-	} else {
+	//cache.Use catches nil this.cache
+	return cache.Use(this.cache, "events.device_service."+deviceId+"."+serviceId, func() (result []model.EventDesc, err error) {
 		return this.db.GetEventDescriptionsByDeviceAndService(deviceId, serviceId)
-	}
+	}, this.cacheDuration)
 }
 
 func (this *Impl) GetImportEventDescriptions(importId string) (result []model.EventDesc, err error) {
-	if this.cache != nil {
-		err = this.cache.Use("events.import."+importId, func() (interface{}, error) {
-			return this.db.GetEventDescriptionsByImportId(importId)
-		}, &result)
-		return
-	} else {
+	//cache.Use catches nil this.cache
+	return cache.Use(this.cache, "events.import."+importId, func() (result []model.EventDesc, err error) {
 		return this.db.GetEventDescriptionsByImportId(importId)
-	}
+	}, this.cacheDuration)
 }
 
 func (this *Impl) SerializeMessage(payload Payload, service models.Service) (result model.SerializedMessage, err error) {

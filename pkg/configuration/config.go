@@ -32,6 +32,8 @@ type Config struct {
 	Debug bool `json:"debug"`
 	Mode  Mode `json:"mode"`
 
+	CacheInvalidationKafkaTopics []string `json:"cache_invalidation_kafka_topics"`
+
 	MetricsPort string `json:"metrics_port"`
 
 	ChannelSize        int `json:"channel_size"`
