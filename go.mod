@@ -9,12 +9,12 @@ require (
 	github.com/SENERGY-Platform/marshaller v0.0.0-20231115075542-ac22a787cd4b
 	github.com/SENERGY-Platform/models/go v0.0.0-20230824080159-16585960df38
 	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20231113070040-c77d0a523b3d
-	github.com/SENERGY-Platform/process-deployment v0.0.0-20231101131005-448fe2549d52
+	github.com/SENERGY-Platform/process-deployment v0.0.0-20231127091158-2e8565a65882
 	github.com/SENERGY-Platform/service-commons v0.0.0-20231115074650-7021aeae60e4
 	github.com/dop251/goja v0.0.0-20231027120936-b396bb4c349d
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/prometheus/client_golang v1.17.0
-	github.com/segmentio/kafka-go v0.4.44
+	github.com/segmentio/kafka-go v0.4.45
 	github.com/testcontainers/testcontainers-go v0.26.0
 	go.mongodb.org/mongo-driver v1.13.0
 )
@@ -101,7 +101,7 @@ require (
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/go-playground/colors.v1 v1.2.0 // indirect
