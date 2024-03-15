@@ -24,8 +24,8 @@ github.com/SENERGY-Platform/permission-search v0.0.7 h1:7W+2uYK7REbzCEmLrVOP4Q84
 github.com/SENERGY-Platform/permission-search v0.0.7/go.mod h1:P5tkakrFWMMbNVeDsW0RBd7tYOgC82cr7+dqNI8EcFc=
 github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20240315071852-b1e66486739a h1:hoiNBkguJa3SWOGJ42yGISLtGwnBGj0rk/rt6szD+yk=
 github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20240315071852-b1e66486739a/go.mod h1:QVXK1Yj4qPaFuejQh7oSjTLFZFbsUsUhtE2UzOFoDbg=
-github.com/SENERGY-Platform/process-deployment v0.0.4 h1:QQRJBj5+ZCrfbrN1OIS6Kc1bYpETzNWnncf82eMSuys=
-github.com/SENERGY-Platform/process-deployment v0.0.4/go.mod h1:Z4C59RWzt3NW7BvYbz5/oUXGlR6y1bcWnfz2KZXJO4M=
+github.com/SENERGY-Platform/process-deployment v0.0.5 h1:wM8HFcAlPg50coAmma7hN1pW8Z91wld8pVkrwD+KlI4=
+github.com/SENERGY-Platform/process-deployment v0.0.5/go.mod h1:Z4C59RWzt3NW7BvYbz5/oUXGlR6y1bcWnfz2KZXJO4M=
 github.com/SENERGY-Platform/service-commons v0.0.0-20240314112519-5bde66831b0d h1:nyiUEVqQc4njAz98rdRFOBivN7Ar9tiI7A/ej0POEx0=
 github.com/SENERGY-Platform/service-commons v0.0.0-20240314112519-5bde66831b0d/go.mod h1:1p2CQPNtler5leXqNgaOfr7DlgZUydrQlQYA97ycm4k=
 github.com/beevik/etree v1.3.0 h1:hQTc+pylzIKDb23yYprodCWWTt+ojFfUZyzU09a/hmU=
