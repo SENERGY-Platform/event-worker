@@ -114,6 +114,8 @@ func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string)
 	//cache.Use catches nil this.cache
 	return cache.Use(this.cache, "events.device_service."+deviceId+"."+serviceId, func() (result []model.EventDesc, err error) {
 		return this.db.GetEventDescriptionsByDeviceAndService(deviceId, serviceId)
+	}, func(descs []model.EventDesc) error {
+		return nil
 	}, this.cacheDuration)
 }
 
@@ -121,6 +123,8 @@ func (this *Impl) GetImportEventDescriptions(importId string) (result []model.Ev
 	//cache.Use catches nil this.cache
 	return cache.Use(this.cache, "events.import."+importId, func() (result []model.EventDesc, err error) {
 		return this.db.GetEventDescriptionsByImportId(importId)
+	}, func(descs []model.EventDesc) error {
+		return nil
 	}, this.cacheDuration)
 }
 
