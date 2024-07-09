@@ -3,12 +3,12 @@ module github.com/SENERGY-Platform/event-worker
 go 1.22
 
 require (
-	github.com/SENERGY-Platform/converter v0.0.7
-	github.com/SENERGY-Platform/marshaller v0.0.14
+	github.com/SENERGY-Platform/converter v0.0.8
+	github.com/SENERGY-Platform/marshaller v0.0.15
 	github.com/SENERGY-Platform/models/go v0.0.0-20240627082833-157bd627a94f
-	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20240628090712-5125e12a31c4
-	github.com/SENERGY-Platform/process-deployment v0.0.6
-	github.com/SENERGY-Platform/service-commons v0.0.0-20240423132428-8eccbc027e71
+	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20240709092939-b6153d631069
+	github.com/SENERGY-Platform/process-deployment v0.0.7
+	github.com/SENERGY-Platform/service-commons v0.0.0-20240708085423-94423a495d7f
 	github.com/dop251/goja v0.0.0-20240627195025-eb1f15ee67d2
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/prometheus/client_golang v1.19.1
@@ -25,7 +25,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Microsoft/hcsshim v0.12.4 // indirect
 	github.com/RyanCarrier/dijkstra v1.4.0 // indirect
-	github.com/SENERGY-Platform/permission-search v0.0.14 // indirect
+	github.com/SENERGY-Platform/permission-search v0.0.16 // indirect
 	github.com/beevik/etree v1.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
