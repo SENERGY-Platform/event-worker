@@ -62,8 +62,8 @@ type Config struct {
 
 	MgwProcessSyncClientUrl string `json:"mgw_process_sync_client_url"`
 
-	AuthUserName string `json:"auth_user_name"`
-	AuthPassword string `json:"auth_password"`
+	AuthUserName string `json:"auth_user_name" config:"secret"`
+	AuthPassword string `json:"auth_password" config:"secret"`
 
 	FallbackFile string `json:"fallback_file"`
 
