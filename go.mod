@@ -6,10 +6,10 @@ toolchain go1.23.3
 
 require (
 	github.com/SENERGY-Platform/converter v0.0.10
-	github.com/SENERGY-Platform/marshaller v0.0.19
+	github.com/SENERGY-Platform/marshaller v0.0.20
 	github.com/SENERGY-Platform/models/go v0.0.0-20241007061544-de7132ae94e4
-	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20241217090919-a19f7d7a5534
-	github.com/SENERGY-Platform/process-deployment v0.0.11
+	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20250106140339-d65972e07eef
+	github.com/SENERGY-Platform/process-deployment v0.0.12
 	github.com/SENERGY-Platform/service-commons v0.0.0-20240813072046-91b3195dd8fc
 	github.com/dop251/goja v0.0.0-20240627195025-eb1f15ee67d2
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -28,7 +28,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/RyanCarrier/dijkstra v1.4.0 // indirect
 	github.com/SENERGY-Platform/developer-notifications v0.0.4 // indirect
-	github.com/SENERGY-Platform/device-repository v0.1.51 // indirect
+	github.com/SENERGY-Platform/device-repository v0.1.52 // indirect
 	github.com/SENERGY-Platform/permissions-v2 v0.0.27 // indirect
 	github.com/beevik/etree v1.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
