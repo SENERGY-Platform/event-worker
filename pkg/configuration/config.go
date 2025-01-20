@@ -53,6 +53,8 @@ type Config struct {
 
 	EventTriggerUrl string `json:"event_trigger_url"` // Cloud: http://engine-wrapper-url:8080/v2/event-trigger or Fog: http://local-camunda-url:8080/engine-rest/message
 
+	MaxEventTriggerInterval string `json:"max_event_trigger_interval"`
+
 	//fog
 	MgwMqttPw       string `json:"mgw_mqtt_pw" config:"secret"`
 	MgwMqttUser     string `json:"mgw_mqtt_user" config:"secret"`

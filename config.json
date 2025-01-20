@@ -12,6 +12,8 @@
     "device_repo_cache_duration": "10m",
     "max_message_age": "1h",
 
+    "max_event_trigger_interval": "1s",
+
     "auth_endpoint": "",
     "auth_client_id": "",
     "auth_expiration_time_buffer": 2,

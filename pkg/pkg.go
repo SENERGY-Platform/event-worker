@@ -48,7 +48,10 @@ func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config)
 		return err
 	}
 
-	t := trigger.New(config, a)
+	t, err := trigger.New(config, a)
+	if err != nil {
+		return err
+	}
 
 	n, err := notifier.New(ctx, wg, config)
 	if err != nil {

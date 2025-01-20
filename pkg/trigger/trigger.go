@@ -24,26 +24,63 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/auth"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache"
 	"io"
+	"log"
 	"net/http"
 	"runtime/debug"
 	"strings"
 	"time"
 )
 
-func New(config configuration.Config, auth *auth.Auth) *Trigger {
-	return &Trigger{
-		config: config,
-		auth:   auth,
+func New(config configuration.Config, auth *auth.Auth) (*Trigger, error) {
+	c, err := cache.New(cache.Config{})
+	if err != nil {
+		return nil, err
 	}
+	maxEventTriggerInterval := time.Duration(0)
+	if config.MaxEventTriggerInterval != "" && config.MaxEventTriggerInterval != "-" {
+		maxEventTriggerInterval, err = time.ParseDuration(config.MaxEventTriggerInterval)
+		if err != nil {
+			log.Println("WARNING: unable to parse max_event_trigger_interval, fall back to 1s", err)
+			maxEventTriggerInterval = time.Second
+		}
+	}
+
+	return &Trigger{
+		config:                  config,
+		auth:                    auth,
+		topicmux:                TopicMutex{},
+		triggerCache:            c,
+		maxEventTriggerInterval: maxEventTriggerInterval,
+	}, nil
 }
 
 type Trigger struct {
-	config configuration.Config
-	auth   *auth.Auth
+	config                  configuration.Config
+	auth                    *auth.Auth
+	topicmux                TopicMutex
+	triggerCache            *cache.Cache
+	maxEventTriggerInterval time.Duration
 }
 
-func (this *Trigger) Trigger(desc model.EventMessageDesc, value interface{}) error {
+func (this *Trigger) Trigger(desc model.EventMessageDesc, value interface{}) (err error) {
+	if this.maxEventTriggerInterval == 0 {
+		return this.trigger(desc, value)
+	}
+	topic := desc.UserId + "+" + desc.EventId
+	this.topicmux.Lock(topic)
+	defer this.topicmux.Unlock(topic)
+	//every event (identified by user-id + event-id) may only happen once
+	//use the cache.Use method to do the complete, only if the complete is not found in cache
+	//cached by half the camunda lock duration to enable retries
+	_, err = cache.Use[string](this.triggerCache, topic, func() (string, error) {
+		return "", this.trigger(desc, value)
+	}, cache.NoValidation, this.maxEventTriggerInterval)
+	return err
+}
+
+func (this *Trigger) trigger(desc model.EventMessageDesc, value interface{}) error {
 	payload, err := json.Marshal(map[string]interface{}{
 		"messageName":   desc.EventId,
 		"all":           true,
