@@ -25,7 +25,6 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/tests/docker"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/process-deployment/lib/config"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"github.com/segmentio/kafka-go"
 	"log"
 	"reflect"
@@ -62,7 +61,7 @@ func TestConsumerUpdateSignal(t *testing.T) {
 
 	initialServiceTopic := "urn_infai_ses_service_1"
 	initialImportTopic := "urn_infai_ses_import_1"
-	err = InitTopics(config.KafkaUrl, config.ServiceTopicConfig, config.DeviceTypeTopic, config.ProcessDeploymentTopic, initialServiceTopic, initialImportTopic)
+	err = InitTopics(config.KafkaUrl, config.ServiceTopicConfig, config.DeviceTypeTopic, config.ProcessDeploymentDoneTopic, initialServiceTopic, initialImportTopic)
 	if err != nil {
 		t.Error(err)
 		return
@@ -89,7 +88,7 @@ func TestConsumerUpdateSignal(t *testing.T) {
 		return
 	}
 
-	deploymentProducer, err := NewTestProducer(config.KafkaUrl, config.ProcessDeploymentTopic)
+	deploymentDoneProducer, err := NewTestProducer(config.KafkaUrl, config.ProcessDeploymentDoneTopic)
 	if err != nil {
 		t.Error(err)
 		return
@@ -196,18 +195,7 @@ func TestConsumerUpdateSignal(t *testing.T) {
 
 	time.Sleep(10 * time.Second)
 
-	import3Id := "urn:infai:ses:3"
-	processDeplMsg, _ := json.Marshal(model.DeploymentCommand{
-		Command: "PUT",
-		Deployment: &deploymentmodel.Deployment{Elements: []deploymentmodel.Element{
-			{
-				ConditionalEvent: &deploymentmodel.ConditionalEvent{
-					Selection: deploymentmodel.Selection{SelectedImportId: &import3Id},
-				},
-			},
-		}},
-	})
-	err = deploymentProducer(string(processDeplMsg))
+	err = deploymentDoneProducer("")
 	if err != nil {
 		t.Error(err)
 		return

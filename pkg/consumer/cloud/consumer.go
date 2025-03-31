@@ -22,7 +22,6 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 	"log"
 	"reflect"
 	"regexp"
@@ -102,21 +101,9 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 	}
 
 	//update signal: potentially new import
-	err = NewKafkaLastOffsetConsumer(basectx, wg, config.KafkaUrl, updateSignalConsumerGroup, config.ProcessDeploymentTopic, func(delivery []byte) error {
+	err = NewKafkaLastOffsetConsumer(basectx, wg, config.KafkaUrl, updateSignalConsumerGroup, config.ProcessDeploymentDoneTopic, func(delivery []byte) error {
 		mux.Lock()
 		defer mux.Unlock()
-		processDeplCmd := model.DeploymentCommand{}
-		err = json.Unmarshal(delivery, &processDeplCmd)
-		if err != nil {
-			log.Println("WARNING: unable to interpret msg as process-deployment update:\n\t", string(delivery), "\n\t", err)
-			return nil //ignore unknown msg format
-		}
-		if processDeplCmd.Command != "PUT" {
-			return nil //ignore
-		}
-		if !processContainsNewImport(currentTopics, processDeplCmd.Deployment) {
-			return nil //ignore
-		}
 		newTopics, err := GetWorkerTopics(config)
 		if err != nil {
 			return err
@@ -144,24 +131,6 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 	}
 
 	return nil
-}
-
-func processContainsNewImport(knownTopics []string, deployment *deploymentmodel.Deployment) bool {
-	if deployment == nil {
-		return false
-	}
-	knownTopicIndex := map[string]bool{}
-	for _, topic := range knownTopics {
-		knownTopicIndex[topic] = true
-	}
-	for _, element := range deployment.Elements {
-		if element.ConditionalEvent != nil &&
-			element.ConditionalEvent.Selection.SelectedImportId != nil &&
-			!knownTopicIndex[ImportIdToTopic(*element.ConditionalEvent.Selection.SelectedImportId)] {
-			return true
-		}
-	}
-	return false
 }
 
 func mergeLists(a []string, b []string) (result []string) {
