@@ -19,7 +19,6 @@ package model
 import (
 	"errors"
 	"github.com/SENERGY-Platform/models/go/models"
-	"github.com/SENERGY-Platform/process-deployment/lib/model/deploymentmodel"
 )
 
 type DeviceTypeCommand struct {
@@ -30,12 +29,12 @@ type DeviceTypeCommand struct {
 }
 
 type DeploymentCommand struct {
-	Command    string                      `json:"command"`
-	Id         string                      `json:"id"`
-	Owner      string                      `json:"owner"`
-	Deployment *deploymentmodel.Deployment `json:"deployment"`
-	Source     string                      `json:"source,omitempty"`
-	Version    int64                       `json:"version"`
+	Command    string             `json:"command"`
+	Id         string             `json:"id"`
+	Owner      string             `json:"owner"`
+	Deployment *models.Deployment `json:"deployment"`
+	Source     string             `json:"source,omitempty"`
+	Version    int64              `json:"version"`
 }
 
 type ConsumerMessage struct {

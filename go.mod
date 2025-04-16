@@ -7,9 +7,8 @@ toolchain go1.23.3
 require (
 	github.com/SENERGY-Platform/converter v0.0.10
 	github.com/SENERGY-Platform/marshaller v0.0.20
-	github.com/SENERGY-Platform/models/go v0.0.0-20241007061544-de7132ae94e4
+	github.com/SENERGY-Platform/models/go v0.0.0-20250416100015-352501ba4571
 	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20250113112424-b764ba2e1a12
-	github.com/SENERGY-Platform/process-deployment v0.0.13
 	github.com/SENERGY-Platform/service-commons v0.0.0-20240813072046-91b3195dd8fc
 	github.com/dop251/goja v0.0.0-20240627195025-eb1f15ee67d2
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -21,6 +20,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
+	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/IBM/sarama v1.43.3 // indirect
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
@@ -28,9 +28,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/RyanCarrier/dijkstra v1.4.0 // indirect
 	github.com/SENERGY-Platform/developer-notifications v0.0.4 // indirect
-	github.com/SENERGY-Platform/device-repository v0.1.52 // indirect
 	github.com/SENERGY-Platform/permissions-v2 v0.0.27 // indirect
-	github.com/beevik/etree v1.4.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -62,7 +60,6 @@ require (
 	github.com/google/pprof v0.0.0-20240625030939-27f56978b8b0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
@@ -112,6 +109,7 @@ require (
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
 	go.opentelemetry.io/otel v1.33.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.19.0 // indirect
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
@@ -120,7 +118,10 @@ require (
 	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
+	google.golang.org/grpc v1.66.0 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
 	gopkg.in/go-playground/colors.v1 v1.2.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

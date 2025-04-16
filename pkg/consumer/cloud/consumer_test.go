@@ -24,7 +24,6 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/event-worker/pkg/tests/docker"
 	"github.com/SENERGY-Platform/models/go/models"
-	"github.com/SENERGY-Platform/process-deployment/lib/config"
 	"github.com/segmentio/kafka-go"
 	"log"
 	"reflect"
@@ -276,7 +275,7 @@ func NewTestProducer(kafkaUrl string, topic string) (func(msg string) error, err
 		return writer.WriteMessages(context.Background(), kafka.Message{
 			Key:   []byte(msg),
 			Value: []byte(msg),
-			Time:  config.TimeNow(),
+			Time:  time.Now(),
 		})
 	}, nil
 }
