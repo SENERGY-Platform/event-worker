@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/permissions-v2/pkg/client"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -38,6 +38,10 @@ type Auth struct {
 }
 
 func (openid *Auth) EnsureAccess(config configuration.Config) (token string, err error) {
+	if config.AuthEndpoint == "" || config.AuthEndpoint == "-" {
+		return client.InternalAdminToken, nil
+	}
+
 	duration := time.Now().Sub(openid.RequestTime).Seconds()
 
 	if openid.AccessToken != "" && openid.ExpiresIn-config.AuthExpirationTimeBuffer > duration {
@@ -113,7 +117,7 @@ func refreshOpenidToken(token *Auth, config configuration.Config) (err error) {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		err = errors.New(string(body))
 		resp.Body.Close()
 		return
