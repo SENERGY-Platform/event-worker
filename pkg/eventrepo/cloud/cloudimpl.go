@@ -57,10 +57,13 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (
 	}
 
 	if config.KafkaUrl != "" && config.KafkaUrl != "-" && config.ProcessDeploymentDoneTopic != "" && config.ProcessDeploymentDoneTopic != "-" {
+		log.Println("watch deployments done topic:", config.ProcessDeploymentDoneTopic)
 		err = result.watchDeploymentsDoneToResetCache(ctx, wg)
 		if err != nil {
 			return result, err
 		}
+	} else {
+		log.Printf("watch deployments done topic: disabled because config.KafkaUrl='%v' config.ProcessDeploymentDoneTopic='%v'\n", config.KafkaUrl, config.ProcessDeploymentDoneTopic)
 	}
 
 	return result, nil
