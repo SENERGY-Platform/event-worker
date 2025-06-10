@@ -34,9 +34,9 @@
                 }
             }
         },
-        "event/#": {
+        "event/{device-local-id}/{service-local-id}": {
             "servers": [{"$ref": "#/servers/mqtt"}],
-            "address": "event/\u0023",
+            "address": "event/{device-local-id}/{service-local-id}",
             "messages": {
                 "publish.message": {
                     "payload": {
@@ -80,14 +80,14 @@
                 }
             ]
         },
-        "event/#.publish": {
+        "event/{device-local-id}/{service-local-id}.publish": {
             "action": "receive",
             "channel": {
-                "$ref": "#/channels/event~1#"
+                "$ref": "#/channels/event~1{device-local-id}~1{service-local-id}"
             },
             "messages": [
                 {
-                    "$ref": "#/channels/event~1#/messages/publish.message"
+                    "$ref": "#/channels/event~1{device-local-id}~1{service-local-id}/messages/publish.message"
                 }
             ]
         },

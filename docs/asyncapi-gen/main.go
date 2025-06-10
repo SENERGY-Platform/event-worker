@@ -76,7 +76,7 @@ func main() {
 
 	//"event/#"
 	mustNotFail(reflector.AddChannel(asyncapi.ChannelInfo{
-		Name: "event/#",
+		Name: "event/{device-local-id}/{service-local-id}",
 		Publish: &asyncapi.MessageSample{
 			MessageEntity: spec.MessageEntity{
 				Name:  "payload",

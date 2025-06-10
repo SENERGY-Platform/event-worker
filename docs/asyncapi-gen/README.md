@@ -17,4 +17,4 @@ the resulting asyncapi.json should be modified
 - channels.Service-Topic.servers = [{"$ref": "#/servers/kafka"}]
 - channels.device-types.servers = [{"$ref": "#/servers/kafka"}]
 - channels.process-deployment-done.servers = [{"$ref": "#/servers/kafka"}]
-- channels.event/#.servers = [{"$ref": "#/servers/mqtt"}]
+- channels.event/{device-local-id}/{service-local-id}.servers = [{"$ref": "#/servers/mqtt"}]
