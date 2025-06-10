@@ -1,0 +1,384 @@
+{
+    "asyncapi": "3.0.0",
+    "info": {
+        "title": "Senergy-Platform-Connector",
+        "version": ""
+    },
+    "servers": {
+        "kafka": {
+            "host": "",
+            "protocol": "kafka"
+        },
+        "mqtt": {
+            "host": "",
+            "protocol": "mqtt"
+        }
+    },
+    "channels": {
+        "Service-Topic": {
+            "servers": [{"$ref": "#/servers/kafka"}],
+            "address": "<Service-Topic>",
+            "description": "topic is a service.Id with replaced '#' and ':' by '_'",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/CloudEnvelope"
+                }
+            }
+        },
+        "device-types": {
+            "servers": [{"$ref": "#/servers/kafka"}],
+            "address": "device-types",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/ModelDeviceTypeCommand"
+                }
+            }
+        },
+        "event/#": {
+            "servers": [{"$ref": "#/servers/mqtt"}],
+            "address": "event/#",
+            "messages": {
+                "publish.message": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "name": "payload",
+                    "title": "payload"
+                }
+            }
+        },
+        "process-deployment-done": {
+            "servers": [{"$ref": "#/servers/kafka"}],
+            "address": "process-deployment-done",
+            "messages": {
+                "publish.message": {
+                    "$ref": "#/components/messages/CloudDoneNotification"
+                }
+            }
+        }
+    },
+    "operations": {
+        "Service-Topic.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/Service-Topic"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/Service-Topic/messages/publish.message"
+                }
+            ]
+        },
+        "device-types.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/device-types"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/device-types/messages/publish.message"
+                }
+            ]
+        },
+        "event/#.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/event~1#"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/event~1#/messages/publish.message"
+                }
+            ]
+        },
+        "process-deployment-done.publish": {
+            "action": "receive",
+            "channel": {
+                "$ref": "#/channels/process-deployment-done"
+            },
+            "messages": [
+                {
+                    "$ref": "#/channels/process-deployment-done/messages/publish.message"
+                }
+            ]
+        }
+    },
+    "components": {
+        "schemas": {
+            "CloudDoneNotification": {
+                "properties": {
+                    "command": {
+                        "type": "string"
+                    },
+                    "handler": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "CloudEnvelope": {
+                "properties": {
+                    "device_id": {
+                        "type": "string"
+                    },
+                    "service_id": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "additionalProperties": {},
+                        "type": [
+                            "object",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelDeviceTypeCommand": {
+                "properties": {
+                    "command": {
+                        "type": "string"
+                    },
+                    "device_type": {
+                        "$ref": "#/components/schemas/ModelsDeviceType"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsAttribute": {
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "origin": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsContent": {
+                "properties": {
+                    "content_variable": {
+                        "$ref": "#/components/schemas/ModelsContentVariable"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "protocol_segment_id": {
+                        "type": "string"
+                    },
+                    "serialization": {
+                        "$ref": "#/components/schemas/ModelsSerialization"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsContentVariable": {
+                "properties": {
+                    "aspect_id": {
+                        "type": "string"
+                    },
+                    "characteristic_id": {
+                        "type": "string"
+                    },
+                    "function_id": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "is_void": {
+                        "type": "boolean"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "omit_empty": {
+                        "type": "boolean"
+                    },
+                    "serialization_options": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "sub_content_variables": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsContentVariable"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/ModelsType"
+                    },
+                    "unit_reference": {
+                        "type": "string"
+                    },
+                    "value": {}
+                },
+                "type": "object"
+            },
+            "ModelsDeviceType": {
+                "properties": {
+                    "attributes": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsAttribute"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "device_class_id": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "service_groups": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsServiceGroup"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "services": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsService"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsInteraction": {
+                "type": "string"
+            },
+            "ModelsSerialization": {
+                "type": "string"
+            },
+            "ModelsService": {
+                "properties": {
+                    "attributes": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsAttribute"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "inputs": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsContent"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "interaction": {
+                        "$ref": "#/components/schemas/ModelsInteraction"
+                    },
+                    "local_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "outputs": {
+                        "items": {
+                            "$ref": "#/components/schemas/ModelsContent"
+                        },
+                        "type": [
+                            "array",
+                            "null"
+                        ]
+                    },
+                    "protocol_id": {
+                        "type": "string"
+                    },
+                    "service_group_key": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsServiceGroup": {
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "key": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ModelsType": {
+                "type": "string"
+            }
+        },
+        "messages": {
+            "CloudDoneNotification": {
+                "payload": {
+                    "$ref": "#/components/schemas/CloudDoneNotification"
+                },
+                "name": "DeploymentDoneNotification",
+                "title": "DeploymentDoneNotification"
+            },
+            "CloudEnvelope": {
+                "payload": {
+                    "$ref": "#/components/schemas/CloudEnvelope"
+                },
+                "name": "Envelope",
+                "title": "Envelope"
+            },
+            "ModelDeviceTypeCommand": {
+                "payload": {
+                    "$ref": "#/components/schemas/ModelDeviceTypeCommand"
+                },
+                "name": "DeviceTypeCommand",
+                "title": "DeviceTypeCommand"
+            }
+        }
+    }
+}

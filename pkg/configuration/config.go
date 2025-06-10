@@ -91,6 +91,8 @@ type Config struct {
 	DebugTraceKeys  []string `json:"debug_trace_keys"`
 	DebugTraceIndex map[string]bool
 
+	ApiDocsProviderBaseUrl string `json:"api_docs_provider_base_url"`
+
 	//all
 	FatalErrHandler func(v ...interface{})
 }

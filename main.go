@@ -19,13 +19,17 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/SENERGY-Platform/api-docs-provider/lib/client"
+	"github.com/SENERGY-Platform/event-worker/docs"
 	"github.com/SENERGY-Platform/event-worker/pkg"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -53,6 +57,18 @@ func main() {
 		cancel()
 	}()
 
+	if config.ApiDocsProviderBaseUrl != "" && config.ApiDocsProviderBaseUrl != "-" {
+		err = PublishAsyncApiDoc(config)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	<-ctx.Done() //waiting for context end; may happen by shutdown signal
 	wg.Wait()    //give go routines time for cleanup and last messages
+}
+
+func PublishAsyncApiDoc(conf configuration.Config) error {
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	return client.New(http.DefaultClient, conf.ApiDocsProviderBaseUrl).AsyncapiPutDoc(ctx, "github_com_SENERGY-Platform_senergy-platform-connector", docs.AsyncApiDoc)
 }
