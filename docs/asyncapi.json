@@ -36,7 +36,7 @@
         },
         "event/#": {
             "servers": [{"$ref": "#/servers/mqtt"}],
-            "address": "event/#",
+            "address": "event/\u0023",
             "messages": {
                 "publish.message": {
                     "payload": {
