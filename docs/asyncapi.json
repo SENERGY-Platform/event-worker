@@ -1,7 +1,7 @@
 {
     "asyncapi": "3.0.0",
     "info": {
-        "title": "Senergy-Platform-Connector",
+        "title": "Event-Worker",
         "version": ""
     },
     "servers": {

@@ -70,5 +70,5 @@ func main() {
 
 func PublishAsyncApiDoc(conf configuration.Config) error {
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	return client.New(http.DefaultClient, conf.ApiDocsProviderBaseUrl).AsyncapiPutDoc(ctx, "github_com_SENERGY-Platform_senergy-platform-connector", docs.AsyncApiDoc)
+	return client.New(http.DefaultClient, conf.ApiDocsProviderBaseUrl).AsyncapiPutDoc(ctx, "github_com_SENERGY-Platform_event-worker", docs.AsyncApiDoc)
 }

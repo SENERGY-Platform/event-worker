@@ -41,7 +41,7 @@ func main() {
 	}
 
 	asyncAPI := spec.AsyncAPI{}
-	asyncAPI.Info.Title = "Senergy-Platform-Connector"
+	asyncAPI.Info.Title = "Event-Worker"
 
 	asyncAPI.AddServer("kafka", spec.Server{
 		URL:      conf.KafkaUrl,
