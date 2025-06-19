@@ -32,7 +32,7 @@ import (
 
 type Worker interface {
 	Do(msg model.ConsumerMessage) error
-	ResetCache()
+	HandleDeploymentUpdateSignal()
 }
 
 func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Config, worker Worker) error {
@@ -62,6 +62,9 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 	err = NewKafkaLastOffsetConsumer(basectx, wg, config.KafkaUrl, updateSignalConsumerGroup, config.DeviceTypeTopic, func(delivery []byte) error {
 		mux.Lock()
 		defer mux.Unlock()
+
+		log.Printf("received %v message\n", config.DeviceTypeTopic)
+
 		dtCmd := model.DeviceTypeCommand{}
 		err = json.Unmarshal(delivery, &dtCmd)
 		if err != nil {
@@ -106,7 +109,8 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 		mux.Lock()
 		defer mux.Unlock()
 
-		worker.ResetCache()
+		log.Printf("received %v message\n", config.ProcessDeploymentDoneTopic)
+		worker.HandleDeploymentUpdateSignal()
 
 		newTopics, err := GetWorkerTopics(config)
 		if err != nil {

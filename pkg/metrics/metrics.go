@@ -26,14 +26,15 @@ import (
 )
 
 type Metrics struct {
-	ConsumedMessages  prometheus.Counter
-	EventsChecked     prometheus.Counter
-	MessagesSkipped   prometheus.Counter
-	EventsTriggered   prometheus.Counter
-	MessageAges       prometheus.Histogram
-	EventRepoLockTime prometheus.Counter
-	DoDuration        prometheus.Counter
-	httphandler       http.Handler
+	ConsumedMessages            prometheus.Counter
+	EventsChecked               prometheus.Counter
+	MessagesSkipped             prometheus.Counter
+	EventsTriggered             prometheus.Counter
+	MessageAges                 prometheus.Histogram
+	EventRepoLockTime           prometheus.Counter
+	DoDuration                  prometheus.Counter
+	DeploymentUpdateSignalCount prometheus.Counter
+	httphandler                 http.Handler
 }
 
 func New() *Metrics {
@@ -68,6 +69,10 @@ func New() *Metrics {
 			Name: "event_worker_do_locke_time_ms",
 			Help: "lock time of do handling in ms",
 		}),
+		DeploymentUpdateSignalCount: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "event_worker_deployment_update_signal_count",
+			Help: "count of cache resets triggered by kafka signals",
+		}),
 		httphandler: promhttp.HandlerFor(
 			reg,
 			promhttp.HandlerOpts{
@@ -83,6 +88,7 @@ func New() *Metrics {
 	reg.MustRegister(m.MessageAges)
 	reg.MustRegister(m.EventRepoLockTime)
 	reg.MustRegister(m.DoDuration)
+	reg.MustRegister(m.DeploymentUpdateSignalCount)
 
 	return m
 }

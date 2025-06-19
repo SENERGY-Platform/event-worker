@@ -288,7 +288,7 @@ func (this MockWorker) Do(msg model.ConsumerMessage) error {
 	return this.F(msg.Topic, msg.Message)
 }
 
-func (this MockWorker) ResetCache() {}
+func (this MockWorker) HandleDeploymentUpdateSignal() {}
 
 func TestSliceTopics(t *testing.T) {
 	type args struct {

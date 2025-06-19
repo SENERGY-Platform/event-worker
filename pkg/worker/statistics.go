@@ -45,6 +45,7 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	defer this.statMux.Unlock()
 	log.Printf(
 		`STATISTICS: (%v)
+|        received deployment update signals: %v
 |        consumed messages: %v from %v topics
 |        skiped messages (older than %v): %v
 |        scripts run: %v
@@ -55,6 +56,7 @@ func (this *Worker) printStatistics(duration time.Duration) {
 |        worker.Do() lock-time: %v
 -------------------------------------------------`,
 		duration.String(),
+		this.deploymentUpdateSignalCount,
 		this.statMsgCount,
 		len(this.statTopics),
 		this.config.MaxMessageAge,
@@ -73,6 +75,7 @@ func (this *Worker) printStatistics(duration time.Duration) {
 	this.statSkipCount = 0
 	this.statScriptCount = 0
 	this.statTriggerCount = 0
+	this.deploymentUpdateSignalCount = 0
 }
 
 func (this *Worker) logStats(topic string, ageInSec int) {
@@ -111,6 +114,13 @@ func (this *Worker) logScript() {
 	defer this.statMux.Unlock()
 	this.statScriptCount = this.statScriptCount + 1
 	this.metrics.EventsChecked.Inc()
+}
+
+func (this *Worker) logDeploymentUpdateSignal() {
+	this.statMux.Lock()
+	defer this.statMux.Unlock()
+	this.deploymentUpdateSignalCount = this.deploymentUpdateSignalCount + 1
+	this.metrics.DeploymentUpdateSignalCount.Inc()
 }
 
 func (this *Worker) logTrigger() {

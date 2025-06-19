@@ -28,7 +28,7 @@ import (
 
 type Worker interface {
 	Do(message model.ConsumerMessage) error
-	ResetCache()
+	HandleDeploymentUpdateSignal()
 }
 
 func Start(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, worker Worker) error {

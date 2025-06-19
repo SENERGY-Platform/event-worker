@@ -40,17 +40,18 @@ type Worker struct {
 
 	work chan model.EventMessageDesc
 
-	statMux           sync.Mutex
-	statMsgCount      int
-	statTopics        map[string]bool
-	statAges          []int
-	statEventRepoWait time.Duration
-	statDoWait        time.Duration
-	maxMsgAgeInSec    int
-	statSkipCount     int
-	statScriptCount   int
-	statTriggerCount  int
-	metrics           *metrics.Metrics
+	statMux                     sync.Mutex
+	statMsgCount                int
+	statTopics                  map[string]bool
+	statAges                    []int
+	statEventRepoWait           time.Duration
+	statDoWait                  time.Duration
+	maxMsgAgeInSec              int
+	statSkipCount               int
+	statScriptCount             int
+	statTriggerCount            int
+	deploymentUpdateSignalCount int
+	metrics                     *metrics.Metrics
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, eventRepo EventRepo, marshaller Marshaller, trigger Trigger, notifier Notifier) (w *Worker, err error) {
@@ -198,6 +199,7 @@ func (this *Worker) startAsyncWorkers() {
 	}
 }
 
-func (this *Worker) ResetCache() {
+func (this *Worker) HandleDeploymentUpdateSignal() {
 	this.eventRepo.ResetCache()
+	this.logDeploymentUpdateSignal()
 }
