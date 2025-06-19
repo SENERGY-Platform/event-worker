@@ -133,7 +133,7 @@ func NewKafkaLastOffsetConsumer(ctx context.Context, wg *sync.WaitGroup, broker 
 				return
 			default:
 				m, err := r.FetchMessage(ctx)
-				if err == io.EOF || err == context.Canceled {
+				if err == io.EOF || errors.Is(err, context.Canceled) {
 					return
 				}
 				topic := m.Topic

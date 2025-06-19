@@ -20,13 +20,10 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
-	consumer "github.com/SENERGY-Platform/event-worker/pkg/consumer/cloud"
 	"github.com/SENERGY-Platform/event-worker/pkg/eventrepo/cloud/mongo"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/service-commons/pkg/cache"
-	"log"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -54,16 +51,6 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (
 		if err != nil {
 			return result, err
 		}
-	}
-
-	if config.KafkaUrl != "" && config.KafkaUrl != "-" && config.ProcessDeploymentDoneTopic != "" && config.ProcessDeploymentDoneTopic != "-" {
-		log.Println("watch deployments done topic:", config.ProcessDeploymentDoneTopic)
-		err = result.watchDeploymentsDoneToResetCache(ctx, wg)
-		if err != nil {
-			return result, err
-		}
-	} else {
-		log.Printf("watch deployments done topic: disabled because config.KafkaUrl='%v' config.ProcessDeploymentDoneTopic='%v'\n", config.KafkaUrl, config.ProcessDeploymentDoneTopic)
 	}
 
 	return result, nil
@@ -144,32 +131,3 @@ type Envelope struct {
 type ImportEnvelope = map[string]interface{}
 
 const ImportEnvelopeIdField = "import_id"
-
-func (this *Impl) watchDeploymentsDoneToResetCache(ctx context.Context, wg *sync.WaitGroup) error {
-	updateSignalConsumerGroup := ""
-	if this.config.InstanceId != "" && this.config.InstanceId != "-" {
-		updateSignalConsumerGroup = this.config.KafkaConsumerGroup + "_" + this.config.InstanceId
-	}
-	return consumer.NewKafkaLastOffsetConsumer(ctx, wg, this.config.KafkaUrl, updateSignalConsumerGroup, this.config.ProcessDeploymentDoneTopic, func(delivery []byte) error {
-		msg := DoneNotification{}
-		err := json.Unmarshal(delivery, &msg)
-		if err != nil {
-			log.Println("ERROR: unable to interpret kafka msg:", err)
-			debug.PrintStack()
-			return nil //ignore  message
-		}
-		log.Println("receive deployment done message:", msg)
-		if msg.Handler == this.config.WatchedProcessDeploymentDoneHandler {
-			this.ResetCache()
-		}
-		return nil
-	}, func(err error) {
-		this.config.HandleFatalError(err)
-	})
-}
-
-type DoneNotification struct {
-	Command string `json:"command"`
-	Id      string `json:"id"`
-	Handler string `json:"handler"`
-}

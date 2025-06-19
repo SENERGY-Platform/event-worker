@@ -32,6 +32,7 @@ import (
 
 type Worker interface {
 	Do(msg model.ConsumerMessage) error
+	ResetCache()
 }
 
 func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Config, worker Worker) error {
@@ -104,6 +105,9 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 	err = NewKafkaLastOffsetConsumer(basectx, wg, config.KafkaUrl, updateSignalConsumerGroup, config.ProcessDeploymentDoneTopic, func(delivery []byte) error {
 		mux.Lock()
 		defer mux.Unlock()
+
+		worker.ResetCache()
+
 		newTopics, err := GetWorkerTopics(config)
 		if err != nil {
 			return err
