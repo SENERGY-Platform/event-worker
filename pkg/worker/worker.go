@@ -22,6 +22,7 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/metrics"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"github.com/SENERGY-Platform/service-commons/pkg/signal"
 	"log"
 	"runtime/debug"
 	"sync"
@@ -83,7 +84,6 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, e
 
 type EventRepo interface {
 	Get(message model.ConsumerMessage) (eventDesc []model.EventMessageDesc, err error)
-	ResetCache()
 }
 
 type Marshaller interface {
@@ -200,6 +200,6 @@ func (this *Worker) startAsyncWorkers() {
 }
 
 func (this *Worker) HandleDeploymentUpdateSignal() {
-	this.eventRepo.ResetCache()
+	signal.DefaultBroker.Pub(signal.Known.CacheInvalidationAll, "")
 	this.logDeploymentUpdateSignal()
 }

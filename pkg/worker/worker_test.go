@@ -473,8 +473,6 @@ type MockEventRepo struct {
 	mux sync.Mutex
 }
 
-func (this MockEventRepo) ResetCache() {}
-
 func (this MockEventRepo) Get(msg model.ConsumerMessage) (eventDesc []model.EventMessageDesc, err error) {
 	this.mux.Lock()
 	defer this.mux.Unlock()

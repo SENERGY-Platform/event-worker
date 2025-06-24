@@ -31,7 +31,6 @@ import (
 
 type Interface interface {
 	Get(message model.ConsumerMessage) (eventDesc []model.EventMessageDesc, err error)
-	ResetCache()
 }
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, notifier Notifier) (result Interface, err error) {
@@ -73,8 +72,6 @@ type Environment[Payload any] interface {
 	GetImportEventDescriptions(importId string) ([]model.EventDesc, error)
 
 	SerializeMessage(payload Payload, service models.Service) (result model.SerializedMessage, err error)
-
-	ResetCache()
 }
 
 func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []model.EventMessageDesc, err error) {
@@ -124,8 +121,4 @@ func (this *EventRepo[Payload]) Get(message model.ConsumerMessage) (result []mod
 		result = append(result, msgDesc)
 	}
 	return result, nil
-}
-
-func (this *EventRepo[Payload]) ResetCache() {
-	this.env.ResetCache()
 }

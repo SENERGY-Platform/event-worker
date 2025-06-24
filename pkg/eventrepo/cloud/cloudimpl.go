@@ -24,6 +24,7 @@ import (
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/service-commons/pkg/cache"
+	"github.com/SENERGY-Platform/service-commons/pkg/signal"
 	"strings"
 	"sync"
 	"time"
@@ -47,7 +48,10 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config) (
 			return result, err
 		}
 		result.cacheDuration = cacheDuration
-		result.cache, err = cache.New(cache.Config{})
+		result.cache, err = cache.New(cache.Config{
+			CacheInvalidationSignalHooks:  map[cache.Signal]cache.ToKey{signal.Known.CacheInvalidationAll: nil},
+			CacheInvalidationSignalBroker: signal.DefaultBroker,
+		})
 		if err != nil {
 			return result, err
 		}
@@ -61,10 +65,6 @@ type Impl struct {
 	db            *mongo.Mongo
 	cache         *cache.Cache
 	cacheDuration time.Duration
-}
-
-func (this *Impl) ResetCache() {
-	this.cache.Reset()
 }
 
 // urn_infai_ses_service_557a8519-c801-42c6-a5e0-d6d6450ec9ab

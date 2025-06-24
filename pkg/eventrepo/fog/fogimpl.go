@@ -115,5 +115,3 @@ func ParseTopic(topic string) (prefix string, deviceUri string, serviceUri strin
 	}
 	return parts[0], parts[1], parts[2], nil
 }
-
-func (this *Impl) ResetCache() {}
