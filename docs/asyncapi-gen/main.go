@@ -43,6 +43,8 @@ func main() {
 	asyncAPI := spec.AsyncAPI{}
 	asyncAPI.Info.Title = "Event-Worker"
 
+	asyncAPI.Info.Description = "topics or parts of topics in '[]' are placeholders"
+
 	asyncAPI.AddServer("kafka", spec.Server{
 		URL:      conf.KafkaUrl,
 		Protocol: "kafka",
@@ -64,7 +66,11 @@ func main() {
 
 	//"topic is a service.Id with replaced '#' and ':' by '_'"
 	mustNotFail(reflector.AddChannel(asyncapi.ChannelInfo{
-		Name: "Service-Topic",
+		Name: "[service-topic]",
+		BaseChannelItem: &spec.ChannelItem{
+			Servers:     []string{"kafka"},
+			Description: "[service-topic] is a service.Id with replaced '#' and ':' by '_'",
+		},
 		Publish: &asyncapi.MessageSample{
 			MessageEntity: spec.MessageEntity{
 				Name:  "Envelope",
@@ -76,7 +82,10 @@ func main() {
 
 	//"event/#"
 	mustNotFail(reflector.AddChannel(asyncapi.ChannelInfo{
-		Name: "event/{device-local-id}/{service-local-id}",
+		Name: "event/[device-local-id]/[service-local-id]",
+		BaseChannelItem: &spec.ChannelItem{
+			Servers: []string{"mqtt"},
+		},
 		Publish: &asyncapi.MessageSample{
 			MessageEntity: spec.MessageEntity{
 				Name:  "payload",
@@ -88,6 +97,9 @@ func main() {
 
 	mustNotFail(reflector.AddChannel(asyncapi.ChannelInfo{
 		Name: conf.DeviceTypeTopic,
+		BaseChannelItem: &spec.ChannelItem{
+			Servers: []string{"kafka"},
+		},
 		Publish: &asyncapi.MessageSample{
 			MessageEntity: spec.MessageEntity{
 				Name:  "DeviceTypeCommand",
@@ -99,12 +111,14 @@ func main() {
 
 	mustNotFail(reflector.AddChannel(asyncapi.ChannelInfo{
 		Name: conf.ProcessDeploymentDoneTopic,
+		BaseChannelItem: &spec.ChannelItem{
+			Servers: []string{"kafka"},
+		},
 		Publish: &asyncapi.MessageSample{
 			MessageEntity: spec.MessageEntity{
 				Name:  "DeploymentDoneNotification",
 				Title: "DeploymentDoneNotification",
 			},
-			MessageSample: new(cloud.DoneNotification),
 		},
 	}))
 

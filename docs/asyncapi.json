@@ -2,7 +2,8 @@
     "asyncapi": "3.0.0",
     "info": {
         "title": "Event-Worker",
-        "version": ""
+        "version": "",
+        "description": "topics or parts of topics in '[]' are placeholders"
     },
     "servers": {
         "kafka": {
@@ -15,28 +16,35 @@
         }
     },
     "channels": {
-        "Service-Topic": {
-            "servers": [{"$ref": "#/servers/kafka"}],
-            "address": "<Service-Topic>",
-            "description": "topic is a service.Id with replaced '#' and ':' by '_'",
+        "[service-topic]": {
+            "address": "[service-topic]",
             "messages": {
                 "publish.message": {
                     "$ref": "#/components/messages/CloudEnvelope"
                 }
-            }
+            },
+            "description": "[service-topic] is a service.Id with replaced '#' and ':' by '_'",
+            "servers": [
+                {
+                    "$ref": "#/servers/kafka"
+                }
+            ]
         },
         "device-types": {
-            "servers": [{"$ref": "#/servers/kafka"}],
             "address": "device-types",
             "messages": {
                 "publish.message": {
                     "$ref": "#/components/messages/ModelDeviceTypeCommand"
                 }
-            }
+            },
+            "servers": [
+                {
+                    "$ref": "#/servers/kafka"
+                }
+            ]
         },
-        "event/{device-local-id}/{service-local-id}": {
-            "servers": [{"$ref": "#/servers/mqtt"}],
-            "address": "event/{device-local-id}/{service-local-id}",
+        "event/[device-local-id]/[service-local-id]": {
+            "address": "event/[device-local-id]/[service-local-id]",
             "messages": {
                 "publish.message": {
                     "payload": {
@@ -45,27 +53,37 @@
                     "name": "payload",
                     "title": "payload"
                 }
-            }
+            },
+            "servers": [
+                {
+                    "$ref": "#/servers/mqtt"
+                }
+            ]
         },
         "process-deployment-done": {
-            "servers": [{"$ref": "#/servers/kafka"}],
             "address": "process-deployment-done",
             "messages": {
                 "publish.message": {
-                    "$ref": "#/components/messages/CloudDoneNotification"
+                    "name": "DeploymentDoneNotification",
+                    "title": "DeploymentDoneNotification"
                 }
-            }
+            },
+            "servers": [
+                {
+                    "$ref": "#/servers/kafka"
+                }
+            ]
         }
     },
     "operations": {
-        "Service-Topic.publish": {
+        "[service-topic].publish": {
             "action": "receive",
             "channel": {
-                "$ref": "#/channels/Service-Topic"
+                "$ref": "#/channels/[service-topic]"
             },
             "messages": [
                 {
-                    "$ref": "#/channels/Service-Topic/messages/publish.message"
+                    "$ref": "#/channels/[service-topic]/messages/publish.message"
                 }
             ]
         },
@@ -80,14 +98,14 @@
                 }
             ]
         },
-        "event/{device-local-id}/{service-local-id}.publish": {
+        "event/[device-local-id]/[service-local-id].publish": {
             "action": "receive",
             "channel": {
-                "$ref": "#/channels/event~1{device-local-id}~1{service-local-id}"
+                "$ref": "#/channels/event~1[device-local-id]~1[service-local-id]"
             },
             "messages": [
                 {
-                    "$ref": "#/channels/event~1{device-local-id}~1{service-local-id}/messages/publish.message"
+                    "$ref": "#/channels/event~1[device-local-id]~1[service-local-id]/messages/publish.message"
                 }
             ]
         },
@@ -105,20 +123,6 @@
     },
     "components": {
         "schemas": {
-            "CloudDoneNotification": {
-                "properties": {
-                    "command": {
-                        "type": "string"
-                    },
-                    "handler": {
-                        "type": "string"
-                    },
-                    "id": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "CloudEnvelope": {
                 "properties": {
                     "device_id": {
@@ -358,13 +362,6 @@
             }
         },
         "messages": {
-            "CloudDoneNotification": {
-                "payload": {
-                    "$ref": "#/components/schemas/CloudDoneNotification"
-                },
-                "name": "DeploymentDoneNotification",
-                "title": "DeploymentDoneNotification"
-            },
             "CloudEnvelope": {
                 "payload": {
                     "$ref": "#/components/schemas/CloudEnvelope"
