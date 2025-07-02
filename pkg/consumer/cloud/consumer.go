@@ -82,10 +82,13 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 		newTopicsSlice := sliceTopics(config, newTopics)
 		if listChanged(currentTopicSlice, newTopicsSlice) {
 			log.Println("update service topic consumer")
-			err = InitTopics(config.KafkaUrl, config.ServiceTopicConfig, addedServiceTopics...)
-			if err != nil {
-				return err
+			if config.InitTopics {
+				err = InitTopics(config.KafkaUrl, config.ServiceTopicConfig, addedServiceTopics...)
+				if err != nil {
+					return err
+				}
 			}
+
 			newCtx, newCancel := context.WithCancel(basectx)
 			err = startWithServiceIds(newCtx, wg, config, worker, newTopicsSlice)
 			if err != nil {

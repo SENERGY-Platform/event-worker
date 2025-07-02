@@ -93,6 +93,8 @@ type Config struct {
 
 	ApiDocsProviderBaseUrl string `json:"api_docs_provider_base_url"`
 
+	InitTopics bool `json:"init_topics"`
+
 	//all
 	FatalErrHandler func(v ...interface{})
 }

@@ -44,6 +44,7 @@ func TestConsumerUpdateSignal(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	config.InitTopics = true
 
 	_, zkIp, err := docker.Zookeeper(ctx, wg)
 	if err != nil {

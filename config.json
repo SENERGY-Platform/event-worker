@@ -77,6 +77,8 @@
 
     "auth_client_secret": "",
 
+    "init_topics": false,
+
     "service_topic_config": [
         {
             "ConfigName":  "retention.ms",
