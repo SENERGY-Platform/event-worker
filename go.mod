@@ -1,15 +1,15 @@
 module github.com/SENERGY-Platform/event-worker
 
-go 1.24
-
-toolchain go1.24.0
+go 1.24.0
 
 require (
+	github.com/SENERGY-Platform/api-docs-provider/lib/client v0.0.3
 	github.com/SENERGY-Platform/converter v0.0.10
-	github.com/SENERGY-Platform/marshaller v0.0.20
+	github.com/SENERGY-Platform/marshaller v0.0.21
 	github.com/SENERGY-Platform/models/go v0.0.0-20250416100015-352501ba4571
-	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20250113112424-b764ba2e1a12
-	github.com/SENERGY-Platform/service-commons v0.0.0-20240813072046-91b3195dd8fc
+	github.com/SENERGY-Platform/permissions-v2 v0.0.38
+	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20250702103132-b906bb46e9f3
+	github.com/SENERGY-Platform/service-commons v0.0.0-20250624131956-6c08be412ea0
 	github.com/dop251/goja v0.0.0-20240627195025-eb1f15ee67d2
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/prometheus/client_golang v1.19.1
@@ -27,11 +27,9 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/RyanCarrier/dijkstra v1.4.0 // indirect
-	github.com/SENERGY-Platform/api-docs-provider/lib/client v0.0.3 // indirect
 	github.com/SENERGY-Platform/api-docs-provider/lib/models v0.0.3 // indirect
 	github.com/SENERGY-Platform/developer-notifications v0.0.4 // indirect
 	github.com/SENERGY-Platform/go-base-http-client v0.1.0 // indirect
-	github.com/SENERGY-Platform/permissions-v2 v0.0.27 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -101,7 +99,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/swaggo/http-swagger v1.3.4 // indirect
-	github.com/swaggo/swag v1.16.3 // indirect
+	github.com/swaggo/swag v1.16.4 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
@@ -114,6 +112,7 @@ require (
 	go.opentelemetry.io/otel v1.33.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.19.0 // indirect
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948 // indirect

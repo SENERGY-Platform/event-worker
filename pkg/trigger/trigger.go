@@ -19,7 +19,6 @@ package trigger
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/SENERGY-Platform/event-worker/pkg/auth"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
@@ -85,10 +84,6 @@ func (this *Trigger) Trigger(desc model.EventMessageDesc, value interface{}) err
 	if err != nil {
 		debug.PrintStack()
 		return fmt.Errorf("%w: %v", model.MessageIgnoreError, err.Error())
-	}
-	if resp.StatusCode >= 500 {
-		//internal service errors may be retried
-		return errors.New(strings.TrimSpace(string(response)))
 	}
 	if resp.StatusCode >= 300 {
 		return fmt.Errorf("%w: %v", model.MessageIgnoreError, strings.TrimSpace(string(response)))

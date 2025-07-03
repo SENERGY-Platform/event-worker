@@ -52,6 +52,7 @@ func (this *Notifier) NotifyError(desc model.EventMessageDesc, errMsg error) (er
 		UserId:  userId,
 		Title:   "Event-Worker Error",
 		Message: fmt.Sprintf("Error: %v\n Deployment-ID: %v\n Script: %v\n", errMsg.Error(), desc.DeploymentId, desc.Script),
+		Topic:   "incident",
 	}
 
 	if this.config.Debug {
@@ -89,4 +90,5 @@ type Message struct {
 	UserId  string `json:"userId" bson:"userId"`
 	Title   string `json:"title" bson:"title"`
 	Message string `json:"message" bson:"message"`
+	Topic   string `json:"topic" bson:"topic"`
 }
