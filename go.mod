@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/SENERGY-Platform/api-docs-provider/lib/client v0.0.3
 	github.com/SENERGY-Platform/converter v0.0.10
-	github.com/SENERGY-Platform/marshaller v0.0.21
+	github.com/SENERGY-Platform/marshaller v0.0.22
 	github.com/SENERGY-Platform/models/go v0.0.0-20250416100015-352501ba4571
 	github.com/SENERGY-Platform/permissions-v2 v0.0.38
 	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20250702103132-b906bb46e9f3

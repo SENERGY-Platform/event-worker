@@ -24,8 +24,8 @@ github.com/SENERGY-Platform/developer-notifications v0.0.4 h1:SmblhfWavNhE1mDxzr
 github.com/SENERGY-Platform/developer-notifications v0.0.4/go.mod h1:8yJrYnAYMtPEPy89ULw8ivgG8orVhSnaLgyfDt0bdgg=
 github.com/SENERGY-Platform/go-base-http-client v0.1.0 h1:PUiZVEj7/cMSZJ0g5G611tjY9bSh1Eby+tcktrgpiZ0=
 github.com/SENERGY-Platform/go-base-http-client v0.1.0/go.mod h1:NfKW/relIVTkMXhz4OqZlzJXYPQUYEKxwqou8D0B/Kw=
-github.com/SENERGY-Platform/marshaller v0.0.21 h1:z9UzK+xwwT702GpQkU6DexfdDuLQKHRyCgrHdHi1sGY=
-github.com/SENERGY-Platform/marshaller v0.0.21/go.mod h1:auKsaDuwjECkhhPWvIP7aS1NHxHhnKbZJ1opYNQTEXc=
+github.com/SENERGY-Platform/marshaller v0.0.22 h1:7WkdTakeNtDCXoTEpz2Owtoam3lMr9oWgxNMTpThZqU=
+github.com/SENERGY-Platform/marshaller v0.0.22/go.mod h1:auKsaDuwjECkhhPWvIP7aS1NHxHhnKbZJ1opYNQTEXc=
 github.com/SENERGY-Platform/models/go v0.0.0-20250416100015-352501ba4571 h1:aNtR3608Wmx0KaUl115VB4M7ul+F7BR4EcTBj9fzKQ4=
 github.com/SENERGY-Platform/models/go v0.0.0-20250416100015-352501ba4571/go.mod h1:bCREPNRN4P8oxLgpC3/ZKK4jXSy4MSPXoiomhohE+aw=
 github.com/SENERGY-Platform/permissions-v2 v0.0.38 h1:zrzIzQ2TB4LENaVZFLK+dpO4KBFlOmvCDcwRzzOoRAE=
