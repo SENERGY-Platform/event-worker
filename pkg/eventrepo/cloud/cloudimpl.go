@@ -19,15 +19,16 @@ package cloud
 import (
 	"context"
 	"encoding/json"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/eventrepo/cloud/mongo"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/service-commons/pkg/cache"
 	"github.com/SENERGY-Platform/service-commons/pkg/signal"
-	"strings"
-	"sync"
-	"time"
 )
 
 type Payload = map[string]interface{}
@@ -102,7 +103,11 @@ func (this *Impl) ParseImportMessage(message model.ConsumerMessage) (importId st
 
 func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string) (result []model.EventDesc, err error) {
 	//cache.Use catches nil this.cache
-	return cache.Use(this.cache, "events.device_service."+deviceId+"."+serviceId, func() (result []model.EventDesc, err error) {
+	use := cache.Use[[]model.EventDesc]
+	if this.config.AsyncCacheRefresh {
+		use = cache.UseWithAsyncRefresh[[]model.EventDesc]
+	}
+	return use(this.cache, "events.device_service."+deviceId+"."+serviceId, func() (result []model.EventDesc, err error) {
 		return this.db.GetEventDescriptionsByDeviceAndService(deviceId, serviceId)
 	}, func(descs []model.EventDesc) error {
 		return nil
@@ -111,7 +116,11 @@ func (this *Impl) GetServiceEventDescriptions(deviceId string, serviceId string)
 
 func (this *Impl) GetImportEventDescriptions(importId string) (result []model.EventDesc, err error) {
 	//cache.Use catches nil this.cache
-	return cache.Use(this.cache, "events.import."+importId, func() (result []model.EventDesc, err error) {
+	use := cache.Use[[]model.EventDesc]
+	if this.config.AsyncCacheRefresh {
+		use = cache.UseWithAsyncRefresh[[]model.EventDesc]
+	}
+	return use(this.cache, "events.import."+importId, func() (result []model.EventDesc, err error) {
 		return this.db.GetEventDescriptionsByImportId(importId)
 	}, func(descs []model.EventDesc) error {
 		return nil

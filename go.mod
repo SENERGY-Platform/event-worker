@@ -9,7 +9,7 @@ require (
 	github.com/SENERGY-Platform/models/go v0.0.0-20250416100015-352501ba4571
 	github.com/SENERGY-Platform/permissions-v2 v0.0.38
 	github.com/SENERGY-Platform/platform-connector-lib v0.0.0-20250702103132-b906bb46e9f3
-	github.com/SENERGY-Platform/service-commons v0.0.0-20250624131956-6c08be412ea0
+	github.com/SENERGY-Platform/service-commons v0.0.0-20250903071414-1b34f1965afa
 	github.com/dop251/goja v0.0.0-20240627195025-eb1f15ee67d2
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/prometheus/client_golang v1.19.1

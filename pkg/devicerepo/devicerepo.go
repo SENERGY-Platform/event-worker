@@ -21,13 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/event-worker/pkg/auth"
-	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
-	"github.com/SENERGY-Platform/event-worker/pkg/model"
-	"github.com/SENERGY-Platform/models/go/models"
-	"github.com/SENERGY-Platform/service-commons/pkg/cache"
-	"github.com/SENERGY-Platform/service-commons/pkg/cache/fallback"
-	"github.com/SENERGY-Platform/service-commons/pkg/signal"
 	"io"
 	"log"
 	"net/http"
@@ -36,6 +29,14 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/SENERGY-Platform/event-worker/pkg/auth"
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"github.com/SENERGY-Platform/models/go/models"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache"
+	"github.com/SENERGY-Platform/service-commons/pkg/cache/fallback"
+	"github.com/SENERGY-Platform/service-commons/pkg/signal"
 )
 
 func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, auth *auth.Auth) (result *DeviceRepo, err error) {
@@ -121,7 +122,11 @@ func (this *DeviceRepo) getToken() (string, error) {
 }
 
 func (this *DeviceRepo) GetCharacteristic(id string) (result models.Characteristic, err error) {
-	return cache.Use(this.cache, "characteristics."+id, func() (result models.Characteristic, err error) {
+	use := cache.Use[models.Characteristic]
+	if this.config.AsyncCacheRefresh {
+		use = cache.UseWithAsyncRefresh[models.Characteristic]
+	}
+	return use(this.cache, "characteristics."+id, func() (result models.Characteristic, err error) {
 		return this.getCharacteristic(id)
 	}, func(characteristic models.Characteristic) error {
 		if characteristic.Id == "" {
@@ -141,7 +146,11 @@ func (this *DeviceRepo) getCharacteristic(id string) (result models.Characterist
 }
 
 func (this *DeviceRepo) GetConcept(id string) (result models.Concept, err error) {
-	return cache.Use(this.cache, "concept."+id, func() (result models.Concept, err error) {
+	use := cache.Use[models.Concept]
+	if this.config.AsyncCacheRefresh {
+		use = cache.UseWithAsyncRefresh[models.Concept]
+	}
+	return use(this.cache, "concept."+id, func() (result models.Concept, err error) {
 		return this.getConcept(id)
 	}, func(concept models.Concept) error {
 		if concept.Id == "" {
@@ -171,7 +180,11 @@ func (this *DeviceRepo) GetConceptIdOfFunction(id string) string {
 }
 
 func (this *DeviceRepo) GetFunction(id string) (result models.Function, err error) {
-	return cache.Use(this.cache, "functions."+id, func() (result models.Function, err error) {
+	use := cache.Use[models.Function]
+	if this.config.AsyncCacheRefresh {
+		use = cache.UseWithAsyncRefresh[models.Function]
+	}
+	return use(this.cache, "functions."+id, func() (result models.Function, err error) {
 		return this.getFunction(id)
 	}, func(function models.Function) error {
 		if function.Id == "" {
@@ -191,7 +204,11 @@ func (this *DeviceRepo) getFunction(id string) (result models.Function, err erro
 }
 
 func (this *DeviceRepo) GetAspectNode(id string) (result models.AspectNode, err error) {
-	return cache.Use(this.cache, "aspect-nodes."+id, func() (result models.AspectNode, err error) {
+	use := cache.Use[models.AspectNode]
+	if this.config.AsyncCacheRefresh {
+		use = cache.UseWithAsyncRefresh[models.AspectNode]
+	}
+	return use(this.cache, "aspect-nodes."+id, func() (result models.AspectNode, err error) {
 		return this.getAspectNode(id)
 	}, func(node models.AspectNode) error {
 		if node.Id == "" {

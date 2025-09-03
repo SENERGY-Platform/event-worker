@@ -19,13 +19,15 @@ package auth
 import (
 	"encoding/json"
 	"errors"
-	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
-	"github.com/SENERGY-Platform/permissions-v2/pkg/client"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
+
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/permissions-v2/pkg/client"
 )
 
 type Auth struct {
@@ -35,12 +37,15 @@ type Auth struct {
 	RefreshToken     string    `json:"refresh_token"`
 	TokenType        string    `json:"token_type"`
 	RequestTime      time.Time `json:"-"`
+	mux              sync.Mutex
 }
 
 func (openid *Auth) EnsureAccess(config configuration.Config) (token string, err error) {
 	if config.AuthEndpoint == "" || config.AuthEndpoint == "-" {
 		return client.InternalAdminToken, nil
 	}
+	openid.mux.Lock()
+	defer openid.mux.Unlock()
 
 	duration := time.Now().Sub(openid.RequestTime).Seconds()
 

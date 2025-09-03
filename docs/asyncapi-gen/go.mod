@@ -9,7 +9,7 @@ require (
 
 require (
 	github.com/SENERGY-Platform/models/go v0.0.0-20250416100015-352501ba4571 // indirect
-	github.com/SENERGY-Platform/service-commons v0.0.0-20250123095636-6dfc659ee43e // indirect
+	github.com/SENERGY-Platform/service-commons v0.0.0-20250624131956-6c08be412ea0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect

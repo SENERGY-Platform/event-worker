@@ -19,18 +19,21 @@ package configuration
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"log"
 	"os"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/segmentio/kafka-go"
 )
 
 type Config struct {
 	Debug bool `json:"debug"`
 	Mode  Mode `json:"mode"`
+
+	AsyncCacheRefresh bool `json:"async_cache_refresh"`
 
 	CacheInvalidationKafkaTopics []string `json:"cache_invalidation_kafka_topics"`
 

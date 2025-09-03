@@ -25,6 +25,8 @@
 
     "event_trigger_url": "",
 
+    "async_cache_refresh": false,
+
     "//fog": "------------------------",
     "mgw_mqtt_pw": "",
     "mgw_mqtt_user": "",
