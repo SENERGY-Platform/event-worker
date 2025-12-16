@@ -1,5 +1,6 @@
 {
     "debug": false,
+    "log_level": "info",
     "mode": "cloud",
 
     "cache_invalidation_kafka_topics": ["device-types", "aspects", "concepts", "characteristics", "functions"],
@@ -71,6 +72,8 @@
 
     "kafka_topic_slice_count": 1,
     "kafka_topic_slice_index": 0,
+
+    "device_type_update_trigger_delay_seconds": 10,
 
     "cloud_event_repo_cache_duration": "10m",
     "cloud_event_repo_mongo_url": "",

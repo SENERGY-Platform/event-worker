@@ -20,9 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/SENERGY-Platform/event-worker/pkg/model"
-	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/topics"
 	"io"
 	"log"
 	"net"
@@ -32,6 +29,10 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/topics"
 )
 
 func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, broker string, groupId string, topics []string, listener func(msg model.ConsumerMessage) error, errhandler func(topic string, err error)) error {
@@ -74,7 +75,11 @@ func NewKafkaLastOffsetConsumerGroup(ctx context.Context, wg *sync.WaitGroup, br
 				return
 			default:
 				m, err := r.FetchMessage(ctx)
-				if errors.Is(err, io.EOF) || errors.Is(err, context.Canceled) {
+				if errors.Is(err, io.EOF) {
+					log.Println("WARNING: kafka reader closed with io.EOF")
+					return
+				}
+				if errors.Is(err, context.Canceled) {
 					return
 				}
 				topic := m.Topic

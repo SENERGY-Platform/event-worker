@@ -20,12 +20,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
+	struct_logger "github.com/SENERGY-Platform/go-service-base/struct-logger"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -98,8 +101,13 @@ type Config struct {
 
 	InitTopics bool `json:"init_topics"`
 
+	DeviceTypeUpdateTriggerDelaySeconds int64 `json:"device_type_update_trigger_delay_seconds"`
+
 	//all
 	FatalErrHandler func(v ...interface{})
+
+	LogLevel string       `json:"log_level"`
+	logger   *slog.Logger `json:"-"`
 }
 
 type Mode = string
@@ -193,4 +201,24 @@ func handleEnvironmentVars(config *Config) {
 			}
 		}
 	}
+}
+
+func (this *Config) GetLogger() *slog.Logger {
+	if this.logger == nil {
+		if this.Debug {
+			this.LogLevel = struct_logger.LevelDebug
+		}
+		this.logger = struct_logger.New(
+			struct_logger.Config{
+				Handler:    struct_logger.JsonHandlerSelector,
+				Level:      this.LogLevel,
+				TimeFormat: time.RFC3339Nano,
+				TimeUtc:    true,
+				AddMeta:    true,
+			},
+			os.Stdout,
+			"",
+			"event-worker")
+	}
+	return this.logger
 }

@@ -19,15 +19,15 @@ package cloud
 import (
 	"context"
 	"encoding/json"
-	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
-	"github.com/SENERGY-Platform/event-worker/pkg/model"
-	"github.com/SENERGY-Platform/models/go/models"
-	"log"
 	"reflect"
 	"regexp"
 	"sort"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
 )
 
 type Worker interface {
@@ -37,21 +37,29 @@ type Worker interface {
 
 func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Config, worker Worker) error {
 	ctx, cancel := context.WithCancel(basectx)
-
-	currentTopics, err := GetWorkerTopics(config)
-	if err != nil {
-		cancel()
-		return err
-	}
-	currentTopicSlice := sliceTopics(config, currentTopics)
-
-	err = startWithServiceIds(ctx, wg, config, worker, currentTopicSlice)
-	if err != nil {
-		cancel()
-		return err
-	}
+	consumer := NewUpdatableConsumer(ctx, config, func(msg model.ConsumerMessage) error {
+		return worker.Do(msg)
+	}, func(topic string, err error) {
+		config.HandleFatalError(err)
+	})
 
 	mux := sync.Mutex{}
+	update := func() error {
+		mux.Lock()
+		defer mux.Unlock()
+		newTopics, err := GetWorkerTopics(config)
+		if err != nil {
+			return err
+		}
+		newTopicsSlice := sliceTopics(config, newTopics)
+		return consumer.UpdateTopics(newTopicsSlice)
+	}
+
+	err := update()
+	if err != nil {
+		cancel()
+		return err
+	}
 
 	updateSignalConsumerGroup := ""
 	if config.InstanceId != "" && config.InstanceId != "-" {
@@ -60,45 +68,18 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 
 	//update signal: potentially new service
 	err = NewKafkaLastOffsetConsumer(basectx, wg, config.KafkaUrl, updateSignalConsumerGroup, config.DeviceTypeTopic, func(delivery []byte) error {
-		mux.Lock()
-		defer mux.Unlock()
-
-		log.Printf("received %v message\n", config.DeviceTypeTopic)
-
+		config.GetLogger().Debug("received device-type update, wait some time before consumer update to ensure that new topics are available", "delay", config.DeviceTypeUpdateTriggerDelaySeconds)
+		time.Sleep(time.Duration(config.DeviceTypeUpdateTriggerDelaySeconds) * time.Second)
 		dtCmd := model.DeviceTypeCommand{}
 		err = json.Unmarshal(delivery, &dtCmd)
 		if err != nil {
-			log.Println("WARNING: unable to interpret msg as device-type update:\n\t", string(delivery), "\n\t", err)
+			config.GetLogger().Warn("unable to interpret msg as device-type update", "error", err)
 			return nil //ignore unknown msg format
 		}
 		if dtCmd.Command != "PUT" {
 			return nil //ignore
 		}
-		newTopics, err := GetWorkerTopics(config)
-		if err != nil {
-			return err
-		}
-		newTopics, addedServiceTopics := addDtServices(newTopics, dtCmd.DeviceType)
-		newTopicsSlice := sliceTopics(config, newTopics)
-		if listChanged(currentTopicSlice, newTopicsSlice) {
-			log.Println("update service topic consumer")
-			if config.InitTopics {
-				err = InitTopics(config.KafkaUrl, config.ServiceTopicConfig, addedServiceTopics...)
-				if err != nil {
-					return err
-				}
-			}
-
-			newCtx, newCancel := context.WithCancel(basectx)
-			err = startWithServiceIds(newCtx, wg, config, worker, newTopicsSlice)
-			if err != nil {
-				newCancel()
-				return err
-			}
-			cancel()
-			currentTopics, currentTopicSlice, ctx, cancel = newTopics, newTopicsSlice, newCtx, newCancel
-		}
-		return nil
+		return update()
 	}, func(err error) {
 		config.HandleFatalError(err)
 	})
@@ -109,30 +90,9 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 
 	//update signal: potentially new import
 	err = NewKafkaLastOffsetConsumer(basectx, wg, config.KafkaUrl, updateSignalConsumerGroup, config.ProcessDeploymentDoneTopic, func(delivery []byte) error {
-		mux.Lock()
-		defer mux.Unlock()
-
-		log.Printf("received %v message\n", config.ProcessDeploymentDoneTopic)
+		config.GetLogger().Debug("received process-deployment update, wait some time before consumer update to ensure that new topics are available")
 		worker.HandleDeploymentUpdateSignal()
-
-		newTopics, err := GetWorkerTopics(config)
-		if err != nil {
-			return err
-		}
-		newTopics = mergeLists(currentTopics, newTopics)
-		newTopicsSlice := sliceTopics(config, newTopics)
-		if listChanged(currentTopicSlice, newTopicsSlice) {
-			log.Println("update service topic consumer")
-			newCtx, newCancel := context.WithCancel(basectx)
-			err = startWithServiceIds(newCtx, wg, config, worker, newTopicsSlice)
-			if err != nil {
-				newCancel()
-				return err
-			}
-			cancel()
-			currentTopics, currentTopicSlice, ctx, cancel = newTopics, newTopicsSlice, newCtx, newCancel
-		}
-		return nil
+		return update()
 	}, func(err error) {
 		config.HandleFatalError(err)
 	})
@@ -142,52 +102,6 @@ func Start(basectx context.Context, wg *sync.WaitGroup, config configuration.Con
 	}
 
 	return nil
-}
-
-func mergeLists(a []string, b []string) (result []string) {
-	index := map[string]bool{}
-	for _, topic := range a {
-		index[topic] = true
-	}
-	for _, topic := range b {
-		index[topic] = true
-	}
-	for topic, _ := range index {
-		result = append(result, topic)
-	}
-	sort.Strings(result)
-	return result
-}
-
-func addDtServices(topics []string, deviceType models.DeviceType) (all []string, added []string) {
-	index := map[string]bool{}
-	for _, topic := range topics {
-		index[topic] = true
-	}
-	for _, service := range deviceType.Services {
-		topic := ServiceIdToTopic(service.Id)
-		if !index[topic] {
-			added = append(all, topic)
-		}
-		index[topic] = true
-	}
-	for topic, _ := range index {
-		all = append(all, topic)
-	}
-	sort.Strings(all)
-	return all, added
-}
-
-func startWithServiceIds(basectx context.Context, wg *sync.WaitGroup, config configuration.Config, worker Worker, serviceIds []string) (err error) {
-	topics := []string{}
-	for _, id := range serviceIds {
-		topics = append(topics, ServiceIdToTopic(id))
-	}
-	return NewKafkaLastOffsetConsumerGroup(basectx, wg, config.KafkaUrl, config.KafkaConsumerGroup, topics, func(msg model.ConsumerMessage) error {
-		return worker.Do(msg)
-	}, func(topic string, err error) {
-		config.HandleFatalError(err)
-	})
 }
 
 func listChanged(a []string, b []string) bool {

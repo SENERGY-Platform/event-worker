@@ -20,17 +20,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
-	"github.com/SENERGY-Platform/event-worker/pkg/model"
-	"github.com/SENERGY-Platform/event-worker/pkg/tests/docker"
-	"github.com/SENERGY-Platform/models/go/models"
-	"github.com/segmentio/kafka-go"
 	"log"
 	"reflect"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"github.com/SENERGY-Platform/event-worker/pkg/tests/docker"
+	"github.com/SENERGY-Platform/models/go/models"
+	"github.com/segmentio/kafka-go"
 )
 
 func TestConsumerUpdateSignal(t *testing.T) {
@@ -45,15 +46,9 @@ func TestConsumerUpdateSignal(t *testing.T) {
 		return
 	}
 	config.InitTopics = true
+	config.DeviceTypeUpdateTriggerDelaySeconds = 0
 
-	_, zkIp, err := docker.Zookeeper(ctx, wg)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	zookeeperUrl := zkIp + ":2181"
-
-	config.KafkaUrl, err = docker.Kafka(ctx, wg, zookeeperUrl)
+	config.KafkaUrl, err = docker.Kafka(ctx, wg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -126,9 +121,15 @@ func TestConsumerUpdateSignal(t *testing.T) {
 		return
 	}
 
+	service2Topic := "urn_infai_ses_service_2"
+	err = InitTopics(config.KafkaUrl, config.ServiceTopicConfig, service2Topic)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	time.Sleep(10 * time.Second)
 
-	service2Topic := "urn_infai_ses_service_2"
 	dtMsg, _ := json.Marshal(model.DeviceTypeCommand{
 		Command: "PUT",
 		DeviceType: models.DeviceType{
@@ -143,8 +144,6 @@ func TestConsumerUpdateSignal(t *testing.T) {
 		return
 	}
 
-	time.Sleep(10 * time.Second)
-
 	service2Producer, err := NewTestProducer(config.KafkaUrl, service2Topic)
 	if err != nil {
 		t.Error(err)
@@ -156,6 +155,8 @@ func TestConsumerUpdateSignal(t *testing.T) {
 		t.Error(err)
 		return
 	}
+
+	time.Sleep(10 * time.Second)
 
 	for _, m := range []string{"4", "5", "6"} {
 		err = service1Producer(m)
@@ -259,11 +260,20 @@ func TestConsumerUpdateSignal(t *testing.T) {
 		import3Topic:        {"7", "8", "9"},
 	}
 	if !reflect.DeepEqual(messages, expected) {
-		t.Errorf("\n%#v\n%#v", messages, expected)
+		t.Errorf("\na=%#v\ne=%#v", messages, expected)
 	}
 }
 
 func NewTestProducer(kafkaUrl string, topic string) (func(msg string) error, error) {
+	err := InitTopics(kafkaUrl, []kafka.ConfigEntry{
+		{
+			ConfigName:  "retention.ms",
+			ConfigValue: "31536000000",
+		},
+	}, topic)
+	if err != nil {
+		return nil, err
+	}
 	writer := &kafka.Writer{
 		Addr:        kafka.TCP(kafkaUrl),
 		Topic:       topic,
