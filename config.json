@@ -74,6 +74,8 @@
     "kafka_topic_slice_index": 0,
 
     "device_type_update_trigger_delay_seconds": 10,
+    "minimum_expected_message_count": 1,
+    "stat_indicated_error_limit": 1,
 
     "cloud_event_repo_cache_duration": "10m",
     "cloud_event_repo_mongo_url": "",

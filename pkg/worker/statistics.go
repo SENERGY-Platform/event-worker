@@ -17,9 +17,11 @@
 package worker
 
 import (
-	"github.com/SENERGY-Platform/event-worker/pkg/metrics"
+	"fmt"
 	"log"
 	"time"
+
+	"github.com/SENERGY-Platform/event-worker/pkg/metrics"
 )
 
 func (this *Worker) StartStatistics() {
@@ -32,6 +34,15 @@ func (this *Worker) StartStatistics() {
 			select {
 			case <-ticker.C:
 				this.printStatistics(time.Minute)
+				count, err := this.statIndicatesError()
+				if err != nil {
+					if this.config.StatIndicatedErrorLimit >= 0 && count > this.config.StatIndicatedErrorLimit {
+						this.config.GetLogger().Error("stat indicates error; configured limit reached --> fatal", "error", err)
+						log.Fatal(err)
+					} else {
+						this.config.GetLogger().Warn("stat indicates error", "error", err)
+					}
+				}
 			case <-this.ctx.Done():
 				return
 			}
@@ -128,6 +139,18 @@ func (this *Worker) logTrigger() {
 	defer this.statMux.Unlock()
 	this.statTriggerCount = this.statTriggerCount + 1
 	this.metrics.EventsTriggered.Inc()
+}
+
+func (this *Worker) statIndicatesError() (count int, err error) {
+	if this.statMsgCount < this.config.MinimumExpectedMessageCount {
+		err = fmt.Errorf("not enough messages received (got %v, expect at least %v)", this.statMsgCount, this.config.MinimumExpectedMessageCount)
+	}
+	if err != nil {
+		this.statIndicatesErrorCount++
+	} else {
+		this.statIndicatesErrorCount = 0
+	}
+	return this.statIndicatesErrorCount, err
 }
 
 func sum(arr []int) (result int) {

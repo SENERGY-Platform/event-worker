@@ -102,6 +102,8 @@ type Config struct {
 	InitTopics bool `json:"init_topics"`
 
 	DeviceTypeUpdateTriggerDelaySeconds int64 `json:"device_type_update_trigger_delay_seconds"`
+	MinimumExpectedMessageCount         int   `json:"minimum_expected_message_count"`
+	StatIndicatedErrorLimit             int   `json:"stat_indicated_error_limit"`
 
 	//all
 	FatalErrHandler func(v ...interface{})

@@ -19,14 +19,15 @@ package worker
 import (
 	"context"
 	"errors"
-	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
-	"github.com/SENERGY-Platform/event-worker/pkg/metrics"
-	"github.com/SENERGY-Platform/event-worker/pkg/model"
-	"github.com/SENERGY-Platform/service-commons/pkg/signal"
 	"log"
 	"runtime/debug"
 	"sync"
 	"time"
+
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
+	"github.com/SENERGY-Platform/event-worker/pkg/metrics"
+	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	"github.com/SENERGY-Platform/service-commons/pkg/signal"
 )
 
 type Worker struct {
@@ -51,6 +52,7 @@ type Worker struct {
 	statSkipCount               int
 	statScriptCount             int
 	statTriggerCount            int
+	statIndicatesErrorCount     int
 	deploymentUpdateSignalCount int
 	metrics                     *metrics.Metrics
 }
