@@ -33,7 +33,6 @@ func (this *Worker) StartStatistics() {
 		for {
 			select {
 			case <-ticker.C:
-				this.printStatistics(time.Minute)
 				count, err := this.statIndicatesError()
 				if err != nil {
 					if this.config.StatIndicatedErrorLimit >= 0 && count > this.config.StatIndicatedErrorLimit {
@@ -43,6 +42,7 @@ func (this *Worker) StartStatistics() {
 						this.config.GetLogger().Warn("stat indicates error", "error", err)
 					}
 				}
+				this.printAndResetStatistics(time.Minute)
 			case <-this.ctx.Done():
 				return
 			}
@@ -51,7 +51,7 @@ func (this *Worker) StartStatistics() {
 	this.metrics = metrics.New().Serve(this.ctx, this.config.MetricsPort)
 }
 
-func (this *Worker) printStatistics(duration time.Duration) {
+func (this *Worker) printAndResetStatistics(duration time.Duration) {
 	this.statMux.Lock()
 	defer this.statMux.Unlock()
 	log.Printf(
