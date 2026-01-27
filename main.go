@@ -19,10 +19,6 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/SENERGY-Platform/api-docs-provider/lib/client"
-	"github.com/SENERGY-Platform/event-worker/docs"
-	"github.com/SENERGY-Platform/event-worker/pkg"
-	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"log"
 	"net/http"
 	"os"
@@ -30,6 +26,11 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/SENERGY-Platform/api-docs-provider/lib/client"
+	"github.com/SENERGY-Platform/event-worker/docs"
+	"github.com/SENERGY-Platform/event-worker/pkg"
+	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 )
 
 func main() {
@@ -46,6 +47,7 @@ func main() {
 
 	err = pkg.Start(ctx, wg, config)
 	if err != nil {
+		config.GetLogger().Error("FATAL unable to start worker", "error", err)
 		log.Fatal(err)
 	}
 
@@ -53,14 +55,14 @@ func main() {
 		shutdown := make(chan os.Signal, 1)
 		signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 		sig := <-shutdown
-		log.Println("received shutdown signal", sig)
+		config.GetLogger().Info("received shutdown signal", "signal", sig)
 		cancel()
 	}()
 
 	if config.ApiDocsProviderBaseUrl != "" && config.ApiDocsProviderBaseUrl != "-" {
 		err = PublishAsyncApiDoc(config)
 		if err != nil {
-			log.Fatal(err)
+			config.GetLogger().Error("unable to publish async api docs", "error", err.Error())
 		}
 	}
 
