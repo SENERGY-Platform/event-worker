@@ -68,7 +68,6 @@
     "kafka_consumer_group": "event-worker",
     "device_type_topic": "device-types",
     "process_deployment_done_topic": "process-deployment-done",
-    "watched_process_deployment_done_handler": "github.com/SENERGY-Platform/event-deployment",
 
     "kafka_topic_slice_count": 1,
     "kafka_topic_slice_index": 0,
