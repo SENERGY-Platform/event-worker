@@ -7,3 +7,5 @@
 [AsyncApi](docs/asyncapi.json)
 
 [AsyncApi-Generation](docs/asyncapi-gen/README.md)
+
+[Event descriptions are written elsewhere](docs/event-descriptions-are-written-elsewhere.md) — this service only reads event descriptions, and what that means for a field added to `model.EventDesc`
