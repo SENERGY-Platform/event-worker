@@ -18,6 +18,7 @@ package model
 
 import (
 	"errors"
+	marshallermodel "github.com/SENERGY-Platform/marshaller/lib/marshaller/model"
 	"github.com/SENERGY-Platform/models/go/models"
 )
 
@@ -62,16 +63,25 @@ type EventDesc struct {
 	EventId       string            `json:"event_id" bson:"event_id"`
 
 	//marshaller info
-	CharacteristicId string `json:"characteristic_id" bson:"characteristic_id"`
-	FunctionId       string `json:"function_id" bson:"function_id"`
-	AspectId         string `json:"aspect_id" bson:"aspect_id"`
-	Path             string `json:"path" bson:"path"`
+	CharacteristicId string   `json:"characteristic_id" bson:"characteristic_id"`
+	FunctionId       string   `json:"function_id" bson:"function_id"`
+	AspectId         string   `json:"aspect_id" bson:"aspect_id"` //deprecated: please use AspectIds
+	AspectIds        []string `json:"aspect_ids,omitempty" bson:"aspect_ids,omitempty"`
+	Path             string   `json:"path" bson:"path"`
 
 	//set by event-manager
 	//may be
 	//	- the service from EventDesc.ConditionalEvent.Selection.SelectedServiceId
 	//	- or an artificial service for EventDesc.ConditionalEvent.Selection.SelectedImportId
 	ServiceForMarshaller models.Service `json:"service_for_marshaller" bson:"service_for_marshaller"`
+}
+
+// GetAspectIds returns the aspects the event description asks for. The deprecated
+// AspectId is an alias for a list with one element and is folded into the list here, so
+// that everything behind it evaluates the list only. The fold is the one the marshaller
+// exports, so that both sides of the criteria agree on it.
+func (this EventDesc) GetAspectIds() []string {
+	return marshallermodel.AspectIdsAlias(this.AspectId, this.AspectIds)
 }
 
 type EventMessageDesc struct {

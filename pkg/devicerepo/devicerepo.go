@@ -18,21 +18,22 @@ package devicerepo
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"runtime/debug"
+	"slices"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/SENERGY-Platform/device-repository/v2/lib/client"
+	devicerepomodel "github.com/SENERGY-Platform/device-repository/v2/lib/model"
 	"github.com/SENERGY-Platform/event-worker/pkg/auth"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"github.com/SENERGY-Platform/event-worker/pkg/model"
+	marshallermodel "github.com/SENERGY-Platform/marshaller/lib/marshaller/model"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/service-commons/pkg/cache"
 	"github.com/SENERGY-Platform/service-commons/pkg/cache/fallback"
@@ -49,6 +50,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, a
 		config:        config,
 		cacheDuration: cacheDuration,
 	}
+	result.client = client.NewClient(config.DeviceRepoUrl, result.getToken)
 
 	cacheConfig := cache.Config{
 		CacheInvalidationSignalHooks: map[cache.Signal]cache.ToKey{
@@ -78,40 +80,24 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, a
 type DeviceRepo struct {
 	auth          *auth.Auth
 	cache         *cache.Cache
+	client        client.Interface
 	config        configuration.Config
 	cacheDuration time.Duration
 }
 
-func (this *DeviceRepo) GetJson(token string, endpoint string, result interface{}) (err error) {
-	req, err := http.NewRequest("GET", endpoint, nil)
-	if err != nil {
+// clientError keeps the retry decision the hand written requests made before the
+// device-repository client replaced them: an internal service error may be retried,
+// every other answer is final for this message and is marked as ignorable, so that the
+// worker drops the message instead of retrying it forever. The client reports transport
+// and decoding failures as http.StatusInternalServerError, so those are retried as well.
+func clientError(err error, code int) error {
+	if err == nil {
+		return nil
+	}
+	if code >= http.StatusInternalServerError {
 		return err
 	}
-	req.Header.Set("Authorization", token)
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 500 {
-		//internal service errors may be retried
-		temp, _ := io.ReadAll(resp.Body)
-		return errors.New(strings.TrimSpace(string(temp)))
-	}
-	if resp.StatusCode >= 300 {
-		temp, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("%w: %v", model.MessageIgnoreError, strings.TrimSpace(string(temp)))
-	}
-	err = json.NewDecoder(resp.Body).Decode(result)
-	if err != nil {
-		log.Println("ERROR:", err.Error())
-		debug.PrintStack()
-		return fmt.Errorf("%w: %v", model.MessageIgnoreError, err.Error())
-	}
-	return nil
+	return fmt.Errorf("%w: %v", model.MessageIgnoreError, err.Error())
 }
 
 func (this *DeviceRepo) getToken() (string, error) {
@@ -137,12 +123,8 @@ func (this *DeviceRepo) GetCharacteristic(id string) (result models.Characterist
 }
 
 func (this *DeviceRepo) getCharacteristic(id string) (result models.Characteristic, err error) {
-	token, err := this.getToken()
-	if err != nil {
-		return result, err
-	}
-	err = this.GetJson(token, this.config.DeviceRepoUrl+"/characteristics/"+url.PathEscape(id), &result)
-	return
+	result, err, code := this.client.GetCharacteristic(id)
+	return result, clientError(err, code)
 }
 
 func (this *DeviceRepo) GetConcept(id string) (result models.Concept, err error) {
@@ -161,12 +143,10 @@ func (this *DeviceRepo) GetConcept(id string) (result models.Concept, err error)
 }
 
 func (this *DeviceRepo) getConcept(id string) (result models.Concept, err error) {
-	token, err := this.getToken()
-	if err != nil {
-		return result, err
-	}
-	err = this.GetJson(token, this.config.DeviceRepoUrl+"/concepts/"+url.PathEscape(id), &result)
-	return
+	//the marshaller needs the characteristic ids and the conversions of the concept, not
+	//the characteristics themselves, which is what the device-repository answers by default
+	result, err, code := this.client.GetConceptWithoutCharacteristics(id)
+	return result, clientError(err, code)
 }
 
 func (this *DeviceRepo) GetConceptIdOfFunction(id string) string {
@@ -195,12 +175,8 @@ func (this *DeviceRepo) GetFunction(id string) (result models.Function, err erro
 }
 
 func (this *DeviceRepo) getFunction(id string) (result models.Function, err error) {
-	token, err := this.getToken()
-	if err != nil {
-		return result, err
-	}
-	err = this.GetJson(token, this.config.DeviceRepoUrl+"/functions/"+url.PathEscape(id), &result)
-	return
+	result, err, code := this.client.GetFunction(id)
+	return result, clientError(err, code)
 }
 
 func (this *DeviceRepo) GetAspectNode(id string) (result models.AspectNode, err error) {
@@ -219,10 +195,58 @@ func (this *DeviceRepo) GetAspectNode(id string) (result models.AspectNode, err 
 }
 
 func (this *DeviceRepo) getAspectNode(id string) (result models.AspectNode, err error) {
-	token, err := this.getToken()
-	if err != nil {
-		return result, err
+	result, err, code := this.client.GetAspectNode(id)
+	return result, clientError(err, code)
+}
+
+// GetAspectNodes reads the aspect-nodes of several ids in one request instead of one
+// request per id. Every requested id has to resolve, because a criteria naming an aspect
+// that does not exist is unanswerable: a missing id is reported the way the not found of a
+// single read is, so that the worker drops the message instead of retrying it.
+//
+// The answer is ordered by the device-repository and not by the requested ids, which the
+// aspect matching does not depend on: it takes the worst matched aspect of the whole set.
+func (this *DeviceRepo) GetAspectNodes(ids []string) (result []models.AspectNode, err error) {
+	//reading the same id twice is one read, and the deduplicated count is what lets the
+	//length of the answer stand for 'every requested id resolved'
+	ids = slices.Clone(ids)
+	slices.Sort(ids)
+	ids = slices.Compact(ids)
+	if len(ids) == 0 {
+		return []models.AspectNode{}, nil
 	}
-	err = this.GetJson(token, this.config.DeviceRepoUrl+"/aspect-nodes/"+url.QueryEscape(id), &result)
-	return
+	use := cache.Use[[]models.AspectNode]
+	if this.config.AsyncCacheRefresh {
+		use = cache.UseWithAsyncRefresh[[]models.AspectNode]
+	}
+	//a key of its own, because a single aspect-node is cached under its id alone and would
+	//collide with a one element list
+	return use(this.cache, "aspect-node-list."+strings.Join(ids, ","), func() (result []models.AspectNode, err error) {
+		return this.getAspectNodes(ids)
+	}, func(nodes []models.AspectNode) error {
+		if len(nodes) != len(ids) {
+			return errors.New("invalid aspect-nodes returned from cache")
+		}
+		return nil
+	}, this.cacheDuration)
+}
+
+func (this *DeviceRepo) getAspectNodes(ids []string) (result []models.AspectNode, err error) {
+	result, _, err, code := this.client.ListAspectNodes(devicerepomodel.AspectListOptions{Ids: ids})
+	if err != nil {
+		return result, clientError(err, code)
+	}
+	if len(result) != len(ids) {
+		return result, fmt.Errorf("%w: unknown aspect nodes: %v", model.MessageIgnoreError, strings.Join(missingAspectNodes(ids, result), ", "))
+	}
+	return result, nil
+}
+
+func missingAspectNodes(ids []string, nodes []models.AspectNode) (result []string) {
+	for _, id := range ids {
+		if !marshallermodel.ContainsAspectNode(nodes, id) {
+			result = append(result, id)
+		}
+	}
+	return result
 }

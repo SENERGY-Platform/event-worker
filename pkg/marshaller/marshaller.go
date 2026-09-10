@@ -53,13 +53,19 @@ type DeviceRepo interface {
 	GetCharacteristic(id string) (characteristic models.Characteristic, err error)
 	GetConcept(id string) (concept models.Concept, err error)
 	GetConceptIdOfFunction(id string) string
+	//GetAspectNode is used by the aspect distance sorting of the marshaller, which walks
+	//the tree one node at a time
 	GetAspectNode(id string) (models.AspectNode, error)
+	GetAspectNodes(ids []string) ([]models.AspectNode, error)
 }
 
 func (this *Marshaller) Unmarshal(desc model.EventMessageDesc) (value interface{}, err error) {
 	var path = desc.Path
 	if path == "" {
 		path, err = this.getPath(desc, desc.ServiceForMarshaller)
+		if err != nil {
+			return value, err
+		}
 	}
 
 	//no protocol is needed because we provide a serialized message
@@ -71,19 +77,23 @@ func (this *Marshaller) Unmarshal(desc model.EventMessageDesc) (value interface{
 }
 
 func (this *Marshaller) getPath(desc model.EventMessageDesc, service models.Service) (string, error) {
-	if desc.AspectId == "" {
+	aspectIds := desc.GetAspectIds()
+	if len(aspectIds) == 0 {
 		return "", fmt.Errorf("%w: %v", model.MessageIgnoreError, "missing aspect id in conditional event description")
 	}
 	if desc.FunctionId == "" {
 		return "", fmt.Errorf("%w: %v", model.MessageIgnoreError, "missing function id in conditional event description")
 	}
-	aspect, err := this.deviceRepo.GetAspectNode(desc.AspectId)
+	//every requested aspect has to be carried by the same content variable, so all of them
+	//are read in one request and passed on together; an aspect that does not resolve makes
+	//the criteria unanswerable and is an error like a missing single aspect was before
+	aspects, err := this.deviceRepo.GetAspectNodes(aspectIds)
 	if err != nil {
 		return "", err
 	}
-	paths := this.marshaller.GetOutputPaths(service, desc.FunctionId, &aspect)
+	paths := this.marshaller.GetOutputPaths(service, desc.FunctionId, aspects)
 	if len(paths) > 1 {
-		paths, err = this.marshaller.SortPathsByAspectDistance(this.deviceRepo, service, &aspect, paths)
+		paths, err = this.marshaller.SortPathsByAspectDistance(this.deviceRepo, service, aspects, paths)
 		if err != nil {
 			log.Println("ERROR:", err)
 			debug.PrintStack()

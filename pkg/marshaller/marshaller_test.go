@@ -386,3 +386,18 @@ func (this DeviceRepoMock) GetConceptIdOfFunction(id string) string {
 func (this DeviceRepoMock) GetAspectNode(id string) (models.AspectNode, error) {
 	return this.GetAspectNodeF(id)
 }
+
+// GetAspectNodes answers out of the same fixture as GetAspectNode, so that a test only has
+// to describe the aspect tree once. What the real device-repository does on top of it -
+// one request for the whole list, and a missing id reported by comparing the answer against
+// the request - is covered in the devicerepo package.
+func (this DeviceRepoMock) GetAspectNodes(ids []string) (result []models.AspectNode, err error) {
+	for _, id := range ids {
+		node, err := this.GetAspectNodeF(id)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, node)
+	}
+	return result, nil
+}
