@@ -51,7 +51,7 @@ func TestCloudEventRepo(t *testing.T) {
 		return
 	}
 
-	config.CloudEventRepoMongoUrl = "mongodb://" + mongoIp + ":27017"
+	config.MongoUrl = "mongodb://" + mongoIp + ":27017"
 
 	repo, err := New(ctx, wg, config, nil)
 	if err != nil {
@@ -129,13 +129,13 @@ func TestCloudEventRepo(t *testing.T) {
 
 	t.Run("create event-repo entries", func(t *testing.T) {
 		reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, reflect.TypeOf(bson.M{})).Build() //ensure map marshalling to interface
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.CloudEventRepoMongoUrl), options.Client().SetRegistry(reg))
+		client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.MongoUrl), options.Client().SetRegistry(reg))
 		if err != nil {
 			t.Error(err)
 			return
 		}
 
-		collection := client.Database(config.CloudEventRepoMongoTable).Collection(config.CloudEventRepoMongoDescCollection)
+		collection := client.Database(config.MongoDatabase).Collection(config.CloudEventRepoMongoDescCollection)
 
 		_, err = collection.InsertMany(ctx, []interface{}{
 			deviceDesc,

@@ -18,6 +18,8 @@ package mongo
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/SENERGY-Platform/event-worker/pkg/configuration"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
@@ -39,12 +41,22 @@ type Mongo struct {
 
 var CreateCollections = []func(db *Mongo) error{}
 
+var (
+	errEmptyDatabase   = errors.New("mongo database name must not be empty")
+	errMissingPassword = errors.New("mongo password must not be empty when a mongo user is set")
+)
+
 func New(ctx context.Context, wg *sync.WaitGroup, conf configuration.Config) (*Mongo, error) {
-	timeout, _ := getTimeoutContext(ctx)
-	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, reflect.TypeOf(bson.M{})).Build() //ensure map marshalling to interface
-	client, err := mongo.Connect(timeout, options.Client().ApplyURI(conf.CloudEventRepoMongoUrl), options.Client().SetRegistry(reg))
+	if err := validateConfig(conf); err != nil {
+		return nil, err
+	}
+	return start(ctx, wg, conf, clientOptions(conf), 10*time.Second)
+}
+
+// start disconnects the client on every failure path, so a failed startup leaves nothing connected.
+func start(ctx context.Context, wg *sync.WaitGroup, conf configuration.Config, opts *options.ClientOptions, timeout time.Duration) (*Mongo, error) {
+	client, err := connect(ctx, opts, conf.MongoDatabase, timeout)
 	if err != nil {
-		debug.PrintStack()
 		return nil, err
 	}
 	db := &Mongo{config: conf, client: client, ctx: ctx}
@@ -52,7 +64,7 @@ func New(ctx context.Context, wg *sync.WaitGroup, conf configuration.Config) (*M
 		err = creators(db)
 		if err != nil {
 			debug.PrintStack()
-			client.Disconnect(context.Background())
+			disconnect(client, timeout)
 			return nil, err
 		}
 	}
@@ -60,14 +72,57 @@ func New(ctx context.Context, wg *sync.WaitGroup, conf configuration.Config) (*M
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
-		log.Println("disconnect from " + conf.CloudEventRepoMongoUrl)
-		client.Disconnect(context.Background())
+		log.Println("disconnect from mongo")
+		disconnect(client, timeout)
 	}()
 	return db, nil
 }
 
-func getTimeoutContext(ctx context.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(ctx, 10*time.Second)
+// connect runs listCollections on the service's database because Connect is lazy and ping needs no
+// authentication; unreachable servers and wrong or missing credentials then fail at startup.
+func connect(ctx context.Context, opts *options.ClientOptions, database string, timeout time.Duration) (*mongo.Client, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	client, err := mongo.Connect(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	listOpts := options.ListCollections().SetNameOnly(true).SetAuthorizedCollections(true)
+	if _, err = client.Database(database).ListCollectionNames(ctx, bson.D{}, listOpts); err != nil {
+		disconnect(client, timeout)
+		return nil, fmt.Errorf("mongo startup check failed: %w", err)
+	}
+	return client, nil
+}
+
+func disconnect(client *mongo.Client, timeout time.Duration) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	_ = client.Disconnect(ctx)
+}
+
+func validateConfig(conf configuration.Config) error {
+	if conf.MongoDatabase == "" {
+		return errEmptyDatabase
+	}
+	if conf.MongoUser != "" && conf.MongoPassword == "" {
+		return errMissingPassword
+	}
+	return nil
+}
+
+// clientOptions applies the credentials after the URI so they replace any given in MONGO_URL.
+func clientOptions(conf configuration.Config) *options.ClientOptions {
+	reg := bson.NewRegistryBuilder().RegisterTypeMapEntry(bsontype.EmbeddedDocument, reflect.TypeOf(bson.M{})).Build() //ensure map marshalling to interface
+	opts := options.Client().ApplyURI(conf.MongoUrl).SetRegistry(reg)
+	if conf.MongoUser != "" {
+		opts.SetAuth(options.Credential{
+			Username:   conf.MongoUser,
+			Password:   conf.MongoPassword,
+			AuthSource: conf.MongoAuthSource,
+		})
+	}
+	return opts
 }
 
 func (this *Mongo) getTimeoutContext() (context.Context, context.CancelFunc) {

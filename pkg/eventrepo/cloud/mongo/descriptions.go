@@ -31,7 +31,7 @@ var ErrReleaseNotFound = errors.New("release not found")
 func init() {
 	CreateCollections = append(CreateCollections, func(db *Mongo) error {
 		var err error
-		collection := db.client.Database(db.config.CloudEventRepoMongoTable).Collection(db.config.CloudEventRepoMongoDescCollection)
+		collection := db.client.Database(db.config.MongoDatabase).Collection(db.config.CloudEventRepoMongoDescCollection)
 		err = db.ensureCompoundIndex(collection, "event_desc_device_service_index", true, false, DescBson.DeviceId, DescBson.ServiceId)
 		if err != nil {
 			debug.PrintStack()
@@ -62,7 +62,7 @@ func init() {
 }
 
 func (this *Mongo) descCollection() *mongo.Collection {
-	return this.client.Database(this.config.CloudEventRepoMongoTable).Collection(this.config.CloudEventRepoMongoDescCollection)
+	return this.client.Database(this.config.MongoDatabase).Collection(this.config.CloudEventRepoMongoDescCollection)
 }
 
 func (this *Mongo) GetEventDescriptionsByImportId(importId string) (result []model.EventDesc, err error) {

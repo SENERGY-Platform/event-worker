@@ -27,7 +27,8 @@ actually used is a read — by device and service, by device group, by import, b
 service, by event id — plus one delete by deployment id.
 
 - **Cloud mode** reads the collection named by
-  `cloud_event_repo_mongo_table` and `cloud_event_repo_mongo_desc_collection`.
+  `cloud_event_repo_mongo_desc_collection` in the database named by
+  `mongo_database` (`MONGO_DATABASE`, default `event_descriptions`).
   Another service writes the rows into it.
 - **Fog mode** (`pkg/eventrepo/fog`) fetches descriptors over HTTP from
   `GET /event-descriptions` of the

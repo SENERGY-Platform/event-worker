@@ -87,8 +87,11 @@ type Config struct {
 	ServiceTopicConfig         []kafka.ConfigEntry `json:"service_topic_config"`
 
 	CloudEventRepoCacheDuration       string `json:"cloud_event_repo_cache_duration"`
-	CloudEventRepoMongoUrl            string `json:"cloud_event_repo_mongo_url"`
-	CloudEventRepoMongoTable          string `json:"cloud_event_repo_mongo_table"`
+	MongoUrl                          string `json:"mongo_url"`
+	MongoUser                         string `json:"mongo_user"`
+	MongoPassword                     string `json:"mongo_password" config:"secret"`
+	MongoAuthSource                   string `json:"mongo_auth_source"`
+	MongoDatabase                     string `json:"mongo_database"`
 	CloudEventRepoMongoDescCollection string `json:"cloud_event_repo_mongo_desc_collection"`
 
 	AuthClientSecret string `json:"auth_client_secret" config:"secret"`
@@ -105,7 +108,7 @@ type Config struct {
 	StatIndicatedErrorLimit             int   `json:"stat_indicated_error_limit"`
 
 	//all
-	FatalErrHandler func(v ...interface{})
+	FatalErrHandler func(v ...interface{}) `json:"-"`
 
 	LogLevel string       `json:"log_level"`
 	logger   *slog.Logger `json:"-"`
@@ -130,6 +133,11 @@ func Load(location string) (config Config, err error) {
 	if err != nil {
 		return config, err
 	}
+	config = Config{
+		MongoUrl:        "mongodb://localhost:27017",
+		MongoAuthSource: "admin",
+		MongoDatabase:   "event_descriptions",
+	}
 	err = json.NewDecoder(file).Decode(&config)
 	if err != nil {
 		return config, err
@@ -138,6 +146,36 @@ func Load(location string) (config Config, err error) {
 	handleInstanceIdAsSliceIndex(&config)
 	setTraceIndex(&config)
 	return config, nil
+}
+
+func isSecret(field reflect.StructField) bool {
+	return strings.Contains(field.Tag.Get("config"), "secret")
+}
+
+// plainConfig has none of Config's methods, so formatting it does not recurse.
+type plainConfig Config
+
+// masked returns a copy in which every non-empty field tagged config:"secret" is replaced.
+func (this Config) masked() plainConfig {
+	v := reflect.ValueOf(&this).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		if isSecret(v.Type().Field(i)) && v.Field(i).Kind() == reflect.String && v.Field(i).String() != "" {
+			v.Field(i).SetString("***")
+		}
+	}
+	return plainConfig(this)
+}
+
+func (this Config) MarshalJSON() ([]byte, error) {
+	return json.Marshal(this.masked())
+}
+
+func (this Config) String() string {
+	return fmt.Sprintf("%+v", this.masked())
+}
+
+func (this Config) GoString() string {
+	return fmt.Sprintf("%#v", this.masked())
 }
 
 var camel = regexp.MustCompile("(^[^A-Z]*|[A-Z]*)([A-Z][^A-Z]+|$)")
@@ -161,11 +199,10 @@ func handleEnvironmentVars(config *Config) {
 	configType := configValue.Type()
 	for index := 0; index < configType.NumField(); index++ {
 		fieldName := configType.Field(index).Name
-		fieldConfig := configType.Field(index).Tag.Get("config")
 		envName := fieldNameToEnvName(fieldName)
 		envValue := os.Getenv(envName)
 		if envValue != "" {
-			if !strings.Contains(fieldConfig, "secret") {
+			if !isSecret(configType.Field(index)) {
 				fmt.Println("use environment variable: ", envName, " = ", envValue)
 			}
 			if configValue.FieldByName(fieldName).Kind() == reflect.Int64 || configValue.FieldByName(fieldName).Kind() == reflect.Int {

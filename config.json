@@ -77,8 +77,11 @@
     "stat_indicated_error_limit": 1,
 
     "cloud_event_repo_cache_duration": "10m",
-    "cloud_event_repo_mongo_url": "",
-    "cloud_event_repo_mongo_table": "event_descriptions",
+    "mongo_url": "mongodb://localhost:27017",
+    "mongo_user": "",
+    "mongo_password": "",
+    "mongo_auth_source": "admin",
+    "mongo_database": "event_descriptions",
     "cloud_event_repo_mongo_desc_collection": "event_descriptions",
 
     "auth_client_secret": "",
