@@ -40,8 +40,6 @@
     "auth_user_name": "",
     "auth_password": "",
 
-    "fallback_file": "devicerepo_fallback.json",
-
     "fog_protocol": {
         "constraints": [
             "senergy_connector_local_id"

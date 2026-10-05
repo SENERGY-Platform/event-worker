@@ -71,8 +71,6 @@ type Config struct {
 	AuthUserName string `json:"auth_user_name" config:"secret"`
 	AuthPassword string `json:"auth_password" config:"secret"`
 
-	FallbackFile string `json:"fallback_file"`
-
 	FogProtocol              interface{} `json:"fog_protocol"`
 	FogProtocolDataFieldName string      `json:"fog_protocol_data_field_name"`
 

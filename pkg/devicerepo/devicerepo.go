@@ -36,7 +36,6 @@ import (
 	marshallermodel "github.com/SENERGY-Platform/marshaller/lib/marshaller/model"
 	"github.com/SENERGY-Platform/models/go/models"
 	"github.com/SENERGY-Platform/service-commons/pkg/cache"
-	"github.com/SENERGY-Platform/service-commons/pkg/cache/fallback"
 	"github.com/SENERGY-Platform/service-commons/pkg/signal"
 )
 
@@ -66,9 +65,6 @@ func New(ctx context.Context, wg *sync.WaitGroup, config configuration.Config, a
 			},
 			signal.Known.AspectCacheInvalidation: nil, //invalidate everything, because an aspect corresponds to multiple aspect-nodes
 		},
-	}
-	if config.Mode == configuration.FogMode && config.FallbackFile != "" && config.FallbackFile != "-" {
-		cacheConfig.FallbackProvider = fallback.NewProvider(config.FallbackFile)
 	}
 	result.cache, err = cache.New(cacheConfig)
 	if err != nil {
